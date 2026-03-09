@@ -1,0 +1,171 @@
+# Compiled class files
+*.class
+
+# Log files
+*.log
+
+# Package Files
+*.jar
+*.war
+*.nar
+*.ear
+*.zip
+*.tar.gz
+*.rar
+
+# Maven
+target/
+pom.xml.tag
+pom.xml.releaseBackup
+pom.xml.versionsBackup
+pom.xml.next
+release.properties
+dependency-reduced-pom.xml
+buildNumber.properties
+.mvn/timing.properties
+.mvn/wrapper/maven-wrapper.jar
+
+# Gradle
+.gradle
+build/
+!gradle/wrapper/gradle-wrapper.jar
+!**/src/main/**/build/
+!**/src/test/**/build/
+
+# IntelliJ IDEA
+.idea/
+*.iws
+*.iml
+*.ipr
+out/
+!**/src/main/**/out/
+!**/src/test/**/out/
+
+# Eclipse
+.apt_generated
+.classpath
+.factorypath
+.project
+.settings
+.springBeans
+.sts4-cache
+bin/
+!**/src/main/**/bin/
+!**/src/test/**/bin/
+
+# VS Code
+.vscode/
+*.code-workspace
+.history/
+
+# NetBeans
+/nbproject/private/
+/nbbuild/
+/dist/
+/nbdist/
+/.nb-gradle/
+
+# macOS
+.DS_Store
+.AppleDouble
+.LSOverride
+
+# Windows
+Thumbs.db
+Thumbs.db:encryptable
+ehthumbs.db
+ehthumbs_vista.db
+*.stackdump
+[Dd]esktop.ini
+$RECYCLE.BIN/
+*.lnk
+
+# Linux
+*~
+.fuse_hidden*
+.directory
+.Trash-*
+.nfs*
+
+# Secrets & Sensitive Data (CRITICAL!)
+*.env
+.env.*
+!.env.example
+application-secret.yml
+application-secrets.yml
+**/secrets/
+*.p12
+*.jks
+*.key
+*.pem
+*.crt
+credentials.json
+auth.json
+
+# Docker
+.dockerignore
+docker-compose.override.yml
+
+# Logs
+logs/
+*.log.*
+*.log.gz
+
+# Temporary files
+*.tmp
+*.temp
+*.swp
+*.swo
+*~
+.*.swp
+.*.swo
+
+# SonarQube
+.sonar/
+.scannerwork/
+
+# JaCoCo
+*.exec
+
+# Test reports
+**/test-output/
+**/test-results/
+
+# H2 Database (local test)
+*.db
+*.mv.db
+*.trace.db
+
+# Oracle Wallet (sensitive)
+wallet/
+cwallet.sso.lck
+ewallet.p12.lck
+
+# Kubernetes secrets (local)
+**/kubernetes/secrets/*.yaml
+!**/kubernetes/secrets/*.yaml.template
+
+# Helm
+**/helm/charts/*.tgz
+**/helm/**/charts/
+
+# Node modules (if frontend exists)
+node_modules/
+npm-debug.log*
+yarn-debug.log*
+yarn-error.log*
+
+# Python (if scripts)
+__pycache__/
+*.py[cod]
+*$py.class
+.Python
+*.so
+.venv/
+venv/
+ENV/
+
+# Backup files
+*.bak
+*.backup
+*.old

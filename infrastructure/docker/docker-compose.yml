@@ -1,0 +1,163 @@
+version: '3.8'
+
+services:
+  # PostgreSQL - Product & Order Services
+  postgresql:
+    image: postgres:16-alpine
+    container_name: eos-postgresql
+    environment:
+      POSTGRES_USER: admin
+      POSTGRES_PASSWORD: admin123
+      POSTGRES_MULTIPLE_DATABASES: product_db,order_db
+    ports:
+      - "5432:5432"
+    volumes:
+      - postgresql_data:/var/lib/postgresql/data
+      - ./init-scripts/postgres-init.sh:/docker-entrypoint-initdb.d/postgres-init.sh
+    networks:
+      - eos-network
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U admin"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Oracle XE - Payment Service
+  oracle:
+    image: gvenzl/oracle-xe:21.3.0-slim
+    container_name: eos-oracle
+    environment:
+      ORACLE_PASSWORD: OraclePassword123
+      ORACLE_DATABASE: paymentdb
+      APP_USER: payment_user
+      APP_USER_PASSWORD: payment_pass
+    ports:
+      - "1521:1521"
+      - "5500:5500"  # Oracle Enterprise Manager
+    volumes:
+      - oracle_data:/opt/oracle/oradata
+    networks:
+      - eos-network
+    healthcheck:
+      test: ["CMD-SHELL", "healthcheck.sh"]
+      interval: 30s
+      timeout: 10s
+      retries: 5
+      start_period: 60s
+
+  # MongoDB - Notification Service
+  mongodb:
+    image: mongo:7.0
+    container_name: eos-mongodb
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: notification_db
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-scripts/mongo-init.js:/docker-entrypoint-initdb.d/mongo-init.js
+    networks:
+      - eos-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--eval", "db.adminCommand('ping')"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # Redis - Cache
+  redis:
+    image: redis:7-alpine
+    container_name: eos-redis
+    command: redis-server --requirepass redis123
+    ports:
+      - "6379:6379"
+    volumes:
+      - redis_data:/data
+    networks:
+      - eos-network
+    healthcheck:
+      test: ["CMD", "redis-cli", "--raw", "incr", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # RabbitMQ - Message Broker
+  rabbitmq:
+    image: rabbitmq:3.13-management-alpine
+    container_name: eos-rabbitmq
+    environment:
+      RABBITMQ_DEFAULT_USER: admin
+      RABBITMQ_DEFAULT_PASS: admin123
+      RABBITMQ_DEFAULT_VHOST: /
+    ports:
+      - "5672:5672"   # AMQP
+      - "15672:15672" # Management UI
+    volumes:
+      - rabbitmq_data:/var/lib/rabbitmq
+      - ./init-scripts/rabbitmq-init.sh:/docker-entrypoint-initdb.d/rabbitmq-init.sh
+    networks:
+      - eos-network
+    healthcheck:
+      test: ["CMD", "rabbitmq-diagnostics", "ping"]
+      interval: 10s
+      timeout: 5s
+      retries: 5
+
+  # pgAdmin - PostgreSQL Web UI (opcional)
+  pgadmin:
+    image: dpage/pgadmin4:latest
+    container_name: eos-pgadmin
+    environment:
+      PGADMIN_DEFAULT_EMAIL: admin@enterprise.com
+      PGADMIN_DEFAULT_PASSWORD: admin123
+      PGADMIN_CONFIG_SERVER_MODE: 'False'
+    ports:
+      - "5050:80"
+    volumes:
+      - pgadmin_data:/var/lib/pgadmin
+    networks:
+      - eos-network
+    depends_on:
+      - postgresql
+    profiles:
+      - tools  # Opcional: docker-compose --profile tools up
+
+  # Mongo Express - MongoDB Web UI (opcional)
+  mongo-express:
+    image: mongo-express:latest
+    container_name: eos-mongo-express
+    environment:
+      ME_CONFIG_MONGODB_ADMINUSERNAME: admin
+      ME_CONFIG_MONGODB_ADMINPASSWORD: admin123
+      ME_CONFIG_MONGODB_URL: mongodb://admin:admin123@mongodb:27017/
+      ME_CONFIG_BASICAUTH_USERNAME: admin
+      ME_CONFIG_BASICAUTH_PASSWORD: admin123
+    ports:
+      - "8081:8081"
+    networks:
+      - eos-network
+    depends_on:
+      - mongodb
+    profiles:
+      - tools
+
+networks:
+  eos-network:
+    driver: bridge
+    name: enterprise-order-system
+
+volumes:
+  postgresql_data:
+    name: eos-postgresql-data
+  oracle_data:
+    name: eos-oracle-data
+  mongodb_data:
+    name: eos-mongodb-data
+  redis_data:
+    name: eos-redis-data
+  rabbitmq_data:
+    name: eos-rabbitmq-data
+  pgadmin_data:
+    name: eos-pgadmin-data
