@@ -126,9 +126,9 @@ echo ==========================================
 
 if exist "services\product-service\pom.xml" (
     echo Testando build do product-service...
-    cd services\product-service
-    mvn clean compile -q >nul 2>&1
-    if %ERRORLEVEL% EQU 0 (
+    pushd services\product-service
+    call mvn clean compile -q >nul 2>&1
+    if !ERRORLEVEL! EQU 0 (
         echo [OK] Build com sucesso
         set /a SUCCESS+=1
     ) else (
@@ -136,7 +136,7 @@ if exist "services\product-service\pom.xml" (
         echo   Execute: mvn clean compile
         set /a FAILURES+=1
     )
-    cd ..\..
+    popd
 ) else (
     echo [AVISO] pom.xml nao encontrado
 )
