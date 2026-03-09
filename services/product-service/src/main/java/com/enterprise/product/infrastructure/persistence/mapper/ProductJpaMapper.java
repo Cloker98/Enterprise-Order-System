@@ -1,0 +1,55 @@
+package com.enterprise.product.infrastructure.persistence.mapper;
+
+import com.enterprise.product.domain.model.Product;
+import com.enterprise.product.domain.model.ProductCategory;
+import com.enterprise.product.domain.model.ProductId;
+import com.enterprise.product.domain.model.ProductStatus;
+import com.enterprise.product.infrastructure.persistence.entity.ProductJpaEntity;
+import org.mapstruct.Mapper;
+import org.mapstruct.Mapping;
+
+/**
+ * MapStruct mapper for Product ↔ ProductJpaEntity conversion.
+ *
+ * <p>Converts between domain model and JPA entity.
+ * Generated implementation is ProductJpaMapperImpl.java
+ */
+@Mapper(componentModel = "spring")
+public interface ProductJpaMapper {
+
+  /**
+   * Converts domain Product to JPA entity.
+   *
+   * @param product the domain product
+   * @return JPA entity
+   */
+  @Mapping(target = "id", expression = "java(product.getId().value())")
+  @Mapping(target = "price", expression = "java(product.getPrice().amount())")
+  @Mapping(
+      target = "category",
+      expression = "java(product.getCategory().name())"
+  )
+  @Mapping(target = "status", expression = "java(product.getStatus().name())")
+  ProductJpaEntity toEntity(Product product);
+
+  /**
+   * Converts JPA entity to domain Product.
+   *
+   * @param entity the JPA entity
+   * @return domain Product
+   */
+  default Product toDomain(ProductJpaEntity entity) {
+    return Product.reconstitute(
+        new ProductId(entity.getId()),
+        entity.getName(),
+        entity.getDescription(),
+        entity.getPrice(),
+        entity.getStockQuantity(),
+        entity.getSku(),
+        ProductCategory.valueOf(entity.getCategory()),
+        ProductStatus.valueOf(entity.getStatus()),
+        entity.getCreatedAt(),
+        entity.getUpdatedAt()
+    );
+  }
+}

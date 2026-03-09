@@ -1,0 +1,25 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(git add .gitignore CLAUDE.md README.md .sdd/ .github/ docs/ infrastructure/ scripts/ services/)",
+      "Bash(git commit:*)",
+      "Bash(git add .sdd/specs/product-service/)",
+      "Bash(mvn clean compile)",
+      "Bash(git add services/product-service/)",
+      "Bash(git add SETUP_GUIDE.md)",
+      "Bash(git add services/product-service/src/main/resources/db/migration/V001__create_products_table.sql services/product-service/src/main/java/com/enterprise/product/domain/model/)",
+      "Bash(chmod +x scripts/*.sh)",
+      "Bash(git add scripts/ SETUP_GUIDE.md)",
+      "Bash(git init)",
+      "Bash(git add .gitignore CLAUDE.md README.md .sdd/ docs/ infrastructure/ scripts/setup-local.sh)",
+      "Bash(git add services/product-service/pom.xml services/product-service/README.md services/product-service/src/main/java/com/enterprise/product/ProductServiceApplication.java services/product-service/src/main/resources/*.yml)",
+      "Bash(git add services/product-service/src/main/resources/db/migration/ services/product-service/src/main/java/com/enterprise/product/domain/model/ SETUP_GUIDE.md GITHUB_SETUP.md)",
+      "Bash(git add scripts/)",
+      "Bash(git add scripts/validate-setup.bat)",
+      "Bash(git add services/product-service/src/main/java/com/enterprise/product/domain/model/ProductStatus.java)",
+      "Bash(git push -u origin main)",
+      "Bash(git push)",
+      "Bash(git add services/product-service/src/main/java/com/enterprise/product/infrastructure/)"
+    ]
+  }
+}
