@@ -21,7 +21,7 @@ echo ==========================================
 where java >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo [OK] Java encontrado
-    java -version
+    call java -version 2>nul
     set /a SUCCESS+=1
 ) else (
     echo [ERRO] Java NAO encontrado
@@ -56,7 +56,7 @@ echo ==========================================
 where mvn >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo [OK] Maven encontrado
-    mvn -version
+    call mvn -version 2>nul
     set /a SUCCESS+=1
 ) else (
     echo [ERRO] Maven NAO encontrado
@@ -73,7 +73,7 @@ echo ==========================================
 where docker >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo [OK] Docker encontrado
-    docker --version
+    call docker --version 2>nul
     set /a SUCCESS+=1
 ) else (
     echo [ERRO] Docker NAO encontrado
@@ -100,7 +100,7 @@ echo ==========================================
 where git >nul 2>&1
 if %ERRORLEVEL% EQU 0 (
     echo [OK] Git encontrado
-    git --version
+    call git --version 2>nul
     set /a SUCCESS+=1
 ) else (
     echo [ERRO] Git NAO encontrado
