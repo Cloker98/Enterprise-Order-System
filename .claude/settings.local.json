@@ -19,7 +19,15 @@
       "Bash(git add services/product-service/src/main/java/com/enterprise/product/domain/model/ProductStatus.java)",
       "Bash(git push -u origin main)",
       "Bash(git push)",
-      "Bash(git add services/product-service/src/main/java/com/enterprise/product/infrastructure/)"
+      "Bash(git add services/product-service/src/main/java/com/enterprise/product/infrastructure/)",
+      "Bash(git reset HEAD README.md)",
+      "Bash(git add services/product-service/src/main/java/com/enterprise/product/application/)",
+      "Bash(git reset HEAD .claude/settings.local.json README.md)",
+      "Bash(git add .sdd/specs/product-service/tasks.md docs/architecture/ADRs/)",
+      "Bash(git add infrastructure/docker/init-scripts/postgres-init.sh services/product-service/src/main/resources/application.yml)",
+      "Bash(dos2unix infrastructure/docker/init-scripts/postgres-init.sh)",
+      "Bash(chmod +x infrastructure/docker/init-scripts/postgres-init.sh)",
+      "Bash(git add infrastructure/docker/init-scripts/postgres-init.sh .gitattributes)"
     ]
   }
 }

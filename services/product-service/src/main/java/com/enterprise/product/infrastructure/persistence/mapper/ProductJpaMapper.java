@@ -25,11 +25,8 @@ public interface ProductJpaMapper {
    */
   @Mapping(target = "id", expression = "java(product.getId().value())")
   @Mapping(target = "price", expression = "java(product.getPrice().amount())")
-  @Mapping(
-      target = "category",
-      expression = "java(product.getCategory().name())"
-  )
-  @Mapping(target = "status", expression = "java(product.getStatus().name())")
+  @Mapping(target = "category", source = "category")
+  @Mapping(target = "status", source = "status")
   ProductJpaEntity toEntity(Product product);
 
   /**
@@ -46,8 +43,8 @@ public interface ProductJpaMapper {
         entity.getPrice(),
         entity.getStockQuantity(),
         entity.getSku(),
-        ProductCategory.valueOf(entity.getCategory()),
-        ProductStatus.valueOf(entity.getStatus()),
+        entity.getCategory(),
+        entity.getStatus(),
         entity.getCreatedAt(),
         entity.getUpdatedAt()
     );

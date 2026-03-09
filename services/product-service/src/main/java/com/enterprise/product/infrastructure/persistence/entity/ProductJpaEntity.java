@@ -1,5 +1,7 @@
 package com.enterprise.product.infrastructure.persistence.entity;
 
+import com.enterprise.product.domain.model.ProductCategory;
+import com.enterprise.product.domain.model.ProductStatus;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -64,11 +66,11 @@ public class ProductJpaEntity {
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
-  private String category;
+  private ProductCategory category;
 
   @Enumerated(EnumType.STRING)
   @Column(nullable = false, length = 20)
-  private String status;
+  private ProductStatus status;
 
   @Column(name = "created_at", nullable = false, updatable = false)
   private LocalDateTime createdAt;
