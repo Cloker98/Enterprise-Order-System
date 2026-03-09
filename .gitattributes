@@ -1,0 +1,33 @@
+# Git Line Endings Configuration
+# Ensures consistent line endings across Windows/Linux/macOS
+
+# Auto detect text files and normalize to LF in repository
+* text=auto
+
+# Force LF for shell scripts (CRITICAL for Docker)
+*.sh text eol=lf
+
+# Force LF for SQL scripts
+*.sql text eol=lf
+
+# Force LF for Unix config files
+Dockerfile text eol=lf
+docker-compose*.yml text eol=lf
+
+# Force CRLF for Windows batch files
+*.bat text eol=crlf
+*.cmd text eol=crlf
+
+# Binary files (no line ending conversion)
+*.jar binary
+*.png binary
+*.jpg binary
+*.gif binary
+*.ico binary
+*.pdf binary
+*.zip binary
+*.tar binary
+*.gz binary
+*.7z binary
+*.p12 binary
+*.jks binary
