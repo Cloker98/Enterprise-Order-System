@@ -57,10 +57,10 @@ public class ProductRepositoryImpl implements ProductRepository {
     log.debug("Finding product by id: {}", idStr);
 
     // 1. Try cache first
-    Optional<Product> cached = cacheService.get(idStr);
+    Optional<ProductJpaEntity> cached = cacheService.get(idStr);
     if (cached.isPresent()) {
       log.debug("Product found in cache: {}", idStr);
-      return cached;
+      return Optional.of(jpaMapper.toDomain(cached.get()));
     }
 
     // 2. If cache miss, query database
@@ -71,9 +71,9 @@ public class ProductRepositoryImpl implements ProductRepository {
       return Optional.empty();
     }
 
-    // 3. Convert to domain and cache result
+    // 3. Cache entity and convert to domain
+    cacheService.put(idStr, entity.get());
     Product product = jpaMapper.toDomain(entity.get());
-    cacheService.put(idStr, product);
 
     log.debug("Product found in database and cached: {}", idStr);
     return Optional.of(product);
