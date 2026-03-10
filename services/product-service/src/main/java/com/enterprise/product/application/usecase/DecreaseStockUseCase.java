@@ -46,6 +46,10 @@ public class DecreaseStockUseCase {
    */
   @Transactional
   public ProductResponse execute(String productId, StockOperationRequest request) {
+    if (request == null) {
+      throw new IllegalArgumentException("StockOperationRequest cannot be null");
+    }
+
     log.info("Decreasing stock for product: {} by quantity: {}", productId, request.quantity());
 
     ProductId id = ProductId.from(productId);

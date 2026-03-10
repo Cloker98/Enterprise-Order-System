@@ -39,6 +39,10 @@ public class CreateProductUseCase {
    */
   @Transactional
   public ProductResponse execute(CreateProductRequest request) {
+    if (request == null) {
+      throw new IllegalArgumentException("CreateProductRequest cannot be null");
+    }
+
     log.info("Creating product with SKU: {}", request.sku());
 
     // Validate SKU uniqueness

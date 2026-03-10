@@ -37,6 +37,10 @@ public class UpdateProductUseCase {
    */
   @Transactional
   public ProductResponse execute(String productId, UpdateProductRequest request) {
+    if (request == null) {
+      throw new IllegalArgumentException("UpdateProductRequest cannot be null");
+    }
+
     log.info("Updating product: {}", productId);
 
     ProductId id = ProductId.from(productId);
