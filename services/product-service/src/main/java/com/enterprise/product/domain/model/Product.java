@@ -3,7 +3,6 @@ package com.enterprise.product.domain.model;
 import com.enterprise.product.domain.exception.InsufficientStockException;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.util.Currency;
 
 /**
  * Product Aggregate Root.

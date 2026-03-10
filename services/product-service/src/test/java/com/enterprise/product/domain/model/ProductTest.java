@@ -1,6 +1,5 @@
 package com.enterprise.product.domain.model;
 
-import static org.junit.jupiter.api.Assertions.assertDoesNotThrow;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -278,8 +277,6 @@ class ProductTest {
         "SKU-UPDATE-001",
         ProductCategory.ELECTRONICS
     );
-
-    LocalDateTime originalUpdatedAt = product.getUpdatedAt();
 
     // When
     product.update(

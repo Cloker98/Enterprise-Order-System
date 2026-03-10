@@ -1,9 +1,7 @@
 package com.enterprise.product.infrastructure.persistence.mapper;
 
 import com.enterprise.product.domain.model.Product;
-import com.enterprise.product.domain.model.ProductCategory;
 import com.enterprise.product.domain.model.ProductId;
-import com.enterprise.product.domain.model.ProductStatus;
 import com.enterprise.product.infrastructure.persistence.entity.ProductJpaEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;

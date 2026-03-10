@@ -14,7 +14,6 @@ import com.enterprise.product.domain.model.Product;
 import com.enterprise.product.domain.model.ProductCategory;
 import com.enterprise.product.domain.repository.ProductRepository;
 import java.math.BigDecimal;
-import java.util.Optional;
 import org.junit.jupiter.api.DisplayName;
 import org.junit.jupiter.api.Test;
 import org.junit.jupiter.api.extension.ExtendWith;
@@ -109,14 +108,7 @@ class CreateProductUseCaseTest {
         ProductCategory.ELECTRONICS
     );
 
-    Product existingProduct = Product.create(
-        "Existing Product",
-        "Existing Description",
-        new BigDecimal("200.00"),
-        5,
-        "EXISTING-SKU",
-        ProductCategory.ELECTRONICS
-    );
+    
 
     when(productRepository.existsBySku("EXISTING-SKU")).thenReturn(true);
 
