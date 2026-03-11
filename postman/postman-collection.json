@@ -1,0 +1,452 @@
+{
+  "info": {
+    "name": "Product Service API",
+    "description": "Complete test collection for Product Service endpoints",
+    "version": "1.0.0",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    {
+      "key": "baseUrl",
+      "value": "http://localhost:8081",
+      "type": "string"
+    },
+    {
+      "key": "productId",
+      "value": "",
+      "type": "string"
+    }
+  ],
+  "item": [
+    {
+      "name": "Health Check",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/actuator/health",
+          "host": ["{{baseUrl}}"],
+          "path": ["actuator", "health"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Create Product",
+      "event": [
+        {
+          "listen": "test",
+          "script": {
+            "exec": [
+              "if (pm.response.code === 201) {",
+              "    const response = pm.response.json();",
+              "    pm.collectionVariables.set('productId', response.id);",
+              "    console.log('Product ID set to:', response.id);",
+              "}"
+            ]
+          }
+        }
+      ],
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"iPhone 15 Pro\",\n    \"description\": \"Latest iPhone with advanced features\",\n    \"price\": 999.99,\n    \"stockQuantity\": 50,\n    \"sku\": \"IPHONE-15-PRO\",\n    \"category\": \"ELECTRONICS\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Get Product by ID",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{productId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Products - Default",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Products - With Pagination",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products?page=0&size=5&sort=name,asc",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"],
+          "query": [
+            {
+              "key": "page",
+              "value": "0"
+            },
+            {
+              "key": "size",
+              "value": "5"
+            },
+            {
+              "key": "sort",
+              "value": "name,asc"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Products - Filter by Category",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products?category=ELECTRONICS",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"],
+          "query": [
+            {
+              "key": "category",
+              "value": "ELECTRONICS"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Products - Filter by Name",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products?name=iPhone",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"],
+          "query": [
+            {
+              "key": "name",
+              "value": "iPhone"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "List Products - Combined Filters",
+      "request": {
+        "method": "GET",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products?category=ELECTRONICS&name=iPhone&sort=price,desc",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products"],
+          "query": [
+            {
+              "key": "category",
+              "value": "ELECTRONICS"
+            },
+            {
+              "key": "name",
+              "value": "iPhone"
+            },
+            {
+              "key": "sort",
+              "value": "price,desc"
+            }
+          ]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Update Product",
+      "request": {
+        "method": "PUT",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"name\": \"iPhone 15 Pro Max\",\n    \"description\": \"Updated iPhone with larger screen and better features\",\n    \"price\": 1199.99,\n    \"category\": \"ELECTRONICS\"\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{productId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Decrease Stock",
+      "request": {
+        "method": "POST",
+        "header": [
+          {
+            "key": "Content-Type",
+            "value": "application/json"
+          }
+        ],
+        "body": {
+          "mode": "raw",
+          "raw": "{\n    \"quantity\": 5\n}"
+        },
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{productId}}/decrease-stock",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{productId}}", "decrease-stock"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Delete Product",
+      "request": {
+        "method": "DELETE",
+        "header": [],
+        "url": {
+          "raw": "{{baseUrl}}/api/v1/products/{{productId}}",
+          "host": ["{{baseUrl}}"],
+          "path": ["api", "v1", "products", "{{productId}}"]
+        }
+      },
+      "response": []
+    },
+    {
+      "name": "Error Tests",
+      "item": [
+        {
+          "name": "Create Product - Invalid Data (Missing Name)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"description\": \"Product without name\",\n    \"price\": 99.99,\n    \"stockQuantity\": 10,\n    \"sku\": \"NO-NAME-TEST\",\n    \"category\": \"ELECTRONICS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product - Invalid Price (Negative)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Invalid Product\",\n    \"description\": \"Product with negative price\",\n    \"price\": -10.00,\n    \"stockQuantity\": 10,\n    \"sku\": \"INVALID-PRICE\",\n    \"category\": \"ELECTRONICS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Create Product - Invalid SKU",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Invalid SKU Product\",\n    \"description\": \"Product with invalid SKU characters\",\n    \"price\": 99.99,\n    \"stockQuantity\": 10,\n    \"sku\": \"INVALID@SKU!\",\n    \"category\": \"ELECTRONICS\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product - Non-existent ID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/00000000-0000-0000-0000-000000000000",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "00000000-0000-0000-0000-000000000000"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Get Product - Invalid UUID",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/invalid-uuid",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "invalid-uuid"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Products - Invalid Category",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products?category=INVALID_CATEGORY",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"],
+              "query": [
+                {
+                  "key": "category",
+                  "value": "INVALID_CATEGORY"
+                }
+              ]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Decrease Stock - Invalid Quantity (Zero)",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"quantity\": 0\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/decrease-stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "decrease-stock"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "Decrease Stock - Insufficient Stock",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"quantity\": 1000\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products/{{productId}}/decrease-stock",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products", "{{productId}}", "decrease-stock"]
+            }
+          },
+          "response": []
+        }
+      ]
+    },
+    {
+      "name": "Performance Tests",
+      "item": [
+        {
+          "name": "Create Multiple Products",
+          "request": {
+            "method": "POST",
+            "header": [
+              {
+                "key": "Content-Type",
+                "value": "application/json"
+              }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n    \"name\": \"Performance Test Product {{$randomInt}}\",\n    \"description\": \"Product created for performance testing\",\n    \"price\": {{$randomPrice}},\n    \"stockQuantity\": {{$randomInt}},\n    \"sku\": \"PERF-{{$randomAlphaNumeric}}-{{$randomInt}}\",\n    \"category\": \"OTHER\"\n}"
+            },
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"]
+            }
+          },
+          "response": []
+        },
+        {
+          "name": "List Products - Large Page Size",
+          "request": {
+            "method": "GET",
+            "header": [],
+            "url": {
+              "raw": "{{baseUrl}}/api/v1/products?size=100",
+              "host": ["{{baseUrl}}"],
+              "path": ["api", "v1", "products"],
+              "query": [
+                {
+                  "key": "size",
+                  "value": "100"
+                }
+              ]
+            }
+          },
+          "response": []
+        }
+      ]
+    }
+  ]
+}

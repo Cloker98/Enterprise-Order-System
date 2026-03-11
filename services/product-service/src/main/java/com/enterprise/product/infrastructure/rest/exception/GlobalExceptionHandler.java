@@ -7,11 +7,14 @@ import com.enterprise.product.domain.exception.ProductNotFoundException;
 import jakarta.servlet.http.HttpServletRequest;
 import java.util.List;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.beans.TypeMismatchException;
+import org.springframework.core.convert.ConversionFailedException;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
+import org.springframework.web.method.annotation.MethodArgumentTypeMismatchException;
 
 /**
  * Global exception handler for REST API.
@@ -119,6 +122,92 @@ public class GlobalExceptionHandler {
         HttpStatus.BAD_REQUEST.getReasonPhrase(),
         "Validation failed",
         errors,
+        request.getRequestURI()
+    );
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+  }
+
+  /**
+   * Handles method argument type mismatch (e.g., invalid enum values).
+   *
+   * @param ex the exception
+   * @param request the HTTP request
+   * @return 400 Bad Request response
+   */
+  @ExceptionHandler(MethodArgumentTypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleMethodArgumentTypeMismatch(
+      MethodArgumentTypeMismatchException ex,
+      HttpServletRequest request) {
+
+    String message = String.format("Invalid value '%s' for parameter '%s'", 
+        ex.getValue(), ex.getName());
+    
+    if (ex.getRequiredType() != null && ex.getRequiredType().isEnum()) {
+      Object[] enumConstants = ex.getRequiredType().getEnumConstants();
+      message += String.format(". Valid values are: %s", 
+          java.util.Arrays.toString(enumConstants));
+    }
+
+    log.warn("Method argument type mismatch: {}", message);
+
+    ErrorResponse error = ErrorResponse.of(
+        HttpStatus.BAD_REQUEST.value(),
+        HttpStatus.BAD_REQUEST.getReasonPhrase(),
+        message,
+        request.getRequestURI()
+    );
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+  }
+
+  /**
+   * Handles conversion failures.
+   *
+   * @param ex the exception
+   * @param request the HTTP request
+   * @return 400 Bad Request response
+   */
+  @ExceptionHandler(ConversionFailedException.class)
+  public ResponseEntity<ErrorResponse> handleConversionFailed(
+      ConversionFailedException ex,
+      HttpServletRequest request) {
+
+    log.warn("Conversion failed: {}", ex.getMessage());
+
+    String message = "Invalid parameter value";
+    if (ex.getCause() != null) {
+      message += ": " + ex.getCause().getMessage();
+    }
+
+    ErrorResponse error = ErrorResponse.of(
+        HttpStatus.BAD_REQUEST.value(),
+        HttpStatus.BAD_REQUEST.getReasonPhrase(),
+        message,
+        request.getRequestURI()
+    );
+
+    return ResponseEntity.status(HttpStatus.BAD_REQUEST).body(error);
+  }
+
+  /**
+   * Handles type mismatch exceptions.
+   *
+   * @param ex the exception
+   * @param request the HTTP request
+   * @return 400 Bad Request response
+   */
+  @ExceptionHandler(TypeMismatchException.class)
+  public ResponseEntity<ErrorResponse> handleTypeMismatch(
+      TypeMismatchException ex,
+      HttpServletRequest request) {
+
+    log.warn("Type mismatch: {}", ex.getMessage());
+
+    ErrorResponse error = ErrorResponse.of(
+        HttpStatus.BAD_REQUEST.value(),
+        HttpStatus.BAD_REQUEST.getReasonPhrase(),
+        "Invalid parameter type: " + ex.getMessage(),
         request.getRequestURI()
     );
 

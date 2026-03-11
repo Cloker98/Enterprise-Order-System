@@ -134,10 +134,24 @@ public class ProductRepositoryImpl implements ProductRepository {
     log.debug("Finding products by filters: category={}, name={}, page={}, size={}",
         category, name, pageable.getPageNumber(), pageable.getPageSize());
 
-    // Convert domain enum to string for JPA query
-    String categoryStr = category != null ? category.name() : null;
+    Page<ProductJpaEntity> entities;
 
-    Page<ProductJpaEntity> entities = jpaRepository.findByFilters(categoryStr, name, pageable);
+    // Use specific methods instead of the generic query to avoid enum conversion issues
+    if (category != null && name != null && !name.trim().isEmpty()) {
+      // Both filters
+      entities = jpaRepository.findByCategoryAndNameContainingIgnoreCase(
+          category, name.trim(), pageable);
+    } else if (category != null) {
+      // Category filter only
+      entities = jpaRepository.findByCategory(category, pageable);
+    } else if (name != null && !name.trim().isEmpty()) {
+      // Name filter only
+      entities = jpaRepository.findByNameContainingIgnoreCase(name.trim(), pageable);
+    } else {
+      // No filters
+      entities = jpaRepository.findAll(pageable);
+    }
+
     Page<Product> products = entities.map(jpaMapper::toDomain);
 
     log.debug("Found {} products with filters (total: {})", 
