@@ -63,7 +63,14 @@
       "Bash(mvn test -Dtest='!ProductIT' jacoco:report)",
       "Bash(mvn clean compile -Dmaven.compiler.showWarnings=true -Dmaven.compiler.showDeprecation=true)",
       "Bash(git add pom.xml src/main/java/com/enterprise/product/application/usecase/*.java src/test/)",
-      "Bash(git add -A)"
+      "Bash(git add -A)",
+      "Bash(git add .sdd/specs/product-service/validation-report.md)",
+      "Bash(mvn clean test -Dsurefire.failIfNoSpecifiedTests=false -Dtest='!ProductIT')",
+      "Bash(mvn test -Dtest='!*IT')",
+      "Bash(mvn clean test)",
+      "Bash(docker ps --filter \"name=eos-postgresql\" --format \"{{.Names}}\\\\t{{.Status}}\\\\t{{.Ports}}\")",
+      "Bash(netstat -ano)",
+      "Bash(findstr :8081)"
     ]
   }
 }

@@ -1,9 +1,9 @@
 # Product Service - Implementation Tasks
 
-**Versão**: 1.0
-**Data**: 2026-03-09
-**Status**: 🚀 Em Progresso - 17/30 tasks concluídas (57%)
-**Última atualização**: 2026-03-09 18:20
+**Versão**: 1.1
+**Data**: 2026-03-10
+**Status**: 🚀 Em Progresso - 17/38 tasks concluídas (45%)
+**Última atualização**: 2026-03-10 12:45
 
 ---
 
@@ -16,11 +16,12 @@
 | 3. Infrastructure Adapters | TASK-009 a TASK-010 | ✅ Concluída | 2/2 (100%) |
 | 4. Application Layer | TASK-011 a TASK-015 | ✅ Concluída | 5/5 (100%) |
 | 5. REST Layer | TASK-016 a TASK-017 | ✅ Concluída | 2/2 (100%) |
-| 6. Integration Tests | TASK-018 a TASK-020 | ⏳ Pendente | 0/3 (0%) |
-| 7. Documentation | TASK-021 a TASK-023 | ⏳ Pendente | 0/3 (0%) |
-| 8. Quality & CI | TASK-024 a TASK-027 | ⏳ Pendente | 0/4 (0%) |
-| 9. Final Validation | TASK-028 a TASK-030 | ⏳ Pendente | 0/3 (0%) |
-| **TOTAL** | **30 tasks** | **57%** | **17/30** |
+| **6. RF-003 Implementation** | **TASK-031 a TASK-038** | **⏳ Nova** | **0/8 (0%)** |
+| 7. Integration Tests | TASK-018 a TASK-020 | ✅ Concluída | 3/3 (100%) |
+| 8. Documentation | TASK-021 a TASK-023 | ⏳ Pendente | 0/3 (0%) |
+| 9. Quality & CI | TASK-024 a TASK-027 | ⏳ Pendente | 0/4 (0%) |
+| 10. Final Validation | TASK-028 a TASK-030 | ⏳ Pendente | 0/3 (0%) |
+| **TOTAL** | **38 tasks** | **45%** | **17/38** |
 
 ### Commits Realizados
 - `19b1d44` - Initial project setup
@@ -29,9 +30,10 @@
 - `50462f7` - Infrastructure Layer (TASK-003, TASK-009, TASK-010)
 - `f8349b4` - Application Layer (TASK-011 a TASK-015)
 - `2393d81` - REST Layer (TASK-016, TASK-017)
+- `latest` - Integration Tests funcionando (TASK-018 a TASK-020)
 
 ### Próxima Milestone
-🎯 **Rodar aplicação e testar endpoints** → depois implementar testes (TASK-018 a TASK-020)
+🎯 **Implementar RF-003 (Listar Produtos Paginado)** → TASK-031 a TASK-038
 
 ---
 
@@ -46,430 +48,282 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ## Task Breakdown (TDD Order)
 
-### Phase 1: Setup & Infrastructure (2-3 horas)
+### Phase 1: Setup & Infrastructure (2-3 horas) ✅ CONCLUÍDA
 
 #### TASK-001: Setup Maven Project Structure ✅
-**Prioridade**: CRITICAL
-**Tempo estimado**: 30 min
-**Dependências**: Nenhuma
-**Rastreabilidade**: Setup inicial
-
-**Checklist**:
-- [x] Criar `pom.xml` root do product-service
-- [x] Configurar dependências (Spring Boot, PostgreSQL, Redis, Lombok, MapStruct)
-- [x] Configurar plugins (Maven Compiler, Surefire, Jacoco)
-- [x] Criar estrutura de pacotes (domain, application, infrastructure)
-- [x] Criar `application.yml` / `application-test.yml`
-- [x] Build passando: `mvn clean compile`
-
 **Status**: ✅ **CONCLUÍDA** (Commit: a76b60b)
 
----
-
 #### TASK-002: Setup Database Migrations ✅
-**Prioridade**: CRITICAL
-**Tempo estimado**: 20 min
-**Dependências**: TASK-001
-**Rastreabilidade**: RF-001 (criar produto requer tabela)
-
-**Checklist**:
-- [x] Criar `src/main/resources/db/migration/V001__create_products_table.sql`
-- [x] Configurar Flyway no `application.yml`
-- [x] Validar migration: `mvn flyway:migrate`
-
 **Status**: ✅ **CONCLUÍDA** (Commit: ceda891)
 
----
-
 #### TASK-003: Setup Redis Configuration ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 15 min
-**Dependências**: TASK-001
-**Rastreabilidade**: RNF-001 (performance com cache)
-
-**Checklist**:
-- [x] Criar `RedisConfig.java`
-- [x] Configurar `CacheManager` com TTL de 5 minutos
-- [x] Criar `ProductCacheService.java` (base)
-
 **Status**: ✅ **CONCLUÍDA** (Commit: 50462f7)
 
----
-
 #### TASK-004: Setup Testcontainers ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 30 min
-**Dependências**: TASK-001
-**Rastreabilidade**: RNF-005 (qualidade - testes de integração)
-
-**Checklist**:
-- [ ] Adicionar dependência `testcontainers` no pom.xml
-- [ ] Criar `BaseIntegrationTest.java` com PostgreSQL + Redis containers
-- [ ] Validar containers: executar teste simples
-- [ ] Configurar `@DynamicPropertySource` para injetar URLs
+**Status**: ✅ **CONCLUÍDA** (Resolvido problema Docker connectivity)
 
 ---
 
-### Phase 2: Domain Layer (TDD) (3-4 horas)
+### Phase 2: Domain Layer (TDD) ✅ CONCLUÍDA
 
 #### TASK-005: Implement Value Objects (TDD) ✅
-**Prioridade**: CRITICAL
-**Tempo estimado**: 1 hora
-**Dependências**: TASK-001
-**Rastreabilidade**: RF-001 (modelo de domínio)
-
-**TDD Steps**:
-1. **TEST**: Criar `ProductIdTest.java`
-   - `shouldCreateValidProductId_WhenUUIDProvided()`
-   - `shouldThrowException_WhenNullUUID()`
-   - `shouldParseFromString_WhenValidUUID()`
-
-2. **CODE**: Implementar `ProductId.java` (record)
-
-3. **TEST**: Criar `MoneyTest.java`
-   - `shouldCreateValidMoney_WhenPositiveAmount()`
-   - `shouldThrowException_WhenNegativeAmount()`
-   - `shouldRoundToTwoDecimals()`
-
-4. **CODE**: Implementar `Money.java` (record)
-
-5. **REFACTOR**: Garantir imutabilidade e validações
-
----
+**Status**: ✅ **CONCLUÍDA**
 
 #### TASK-006: Implement Product Aggregate (TDD) ✅
-**Prioridade**: CRITICAL
-**Tempo estimado**: 2 horas
-**Dependências**: TASK-005
-**Rastreabilidade**: RF-001, RF-004, RF-006, RF-007
-
-**TDD Steps**:
-1. **TEST**: Criar `ProductTest.java` - Factory Method `create()`
-   - `shouldCreateProduct_WhenValidData()`
-   - `shouldThrowException_WhenNullName()`
-   - `shouldThrowException_WhenNegativePrice()`
-   - `shouldThrowException_WhenInvalidSKU()`
-   - `shouldSetStatusActiveByDefault()`
-
-2. **CODE**: Implementar `Product.create()` com validações
-
-3. **TEST**: Decrementar estoque
-   - `decreaseStock_WhenSufficientQuantity_ShouldDecrease()`
-   - `decreaseStock_WhenInsufficientQuantity_ShouldThrowException()`
-   - `decreaseStock_WhenZeroQuantity_ShouldThrowException()`
-
-4. **CODE**: Implementar `Product.decreaseStock()`
-
-5. **TEST**: Incrementar estoque
-   - `increaseStock_WhenPositiveQuantity_ShouldIncrease()`
-   - `increaseStock_WhenZeroQuantity_ShouldThrowException()`
-
-6. **CODE**: Implementar `Product.increaseStock()`
-
-7. **TEST**: Atualizar produto
-   - `update_WhenValidData_ShouldUpdate()`
-   - `update_WhenInvalidData_ShouldThrowException()`
-
-8. **CODE**: Implementar `Product.update()`
-
-9. **TEST**: Inativar produto
-   - `deactivate_ShouldSetStatusInactive()`
-
-10. **CODE**: Implementar `Product.deactivate()`
-
-11. **REFACTOR**: Extrair validações, garantir encapsulamento
-
-**Coverage Target**: ≥ 95%
-
----
+**Status**: ✅ **CONCLUÍDA**
 
 #### TASK-007: Implement Domain Exceptions ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 15 min
-**Dependências**: TASK-006
-**Rastreabilidade**: Tratamento de erros
-
-**Checklist**:
-- [ ] Criar `DomainException.java` (base)
-- [ ] Criar `ProductNotFoundException.java`
-- [ ] Criar `InsufficientStockException.java`
-- [ ] Criar `DuplicateSkuException.java`
-- [ ] Criar testes unitários para exceções
-
----
+**Status**: ✅ **CONCLUÍDA**
 
 #### TASK-008: Define Repository Port (Interface) ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 10 min
-**Dependências**: TASK-006
-**Rastreabilidade**: Hexagonal Architecture (port)
-
-**Checklist**:
-- [ ] Criar `ProductRepository.java` (interface)
-- [ ] Definir métodos: `save()`, `findById()`, `findBySku()`, `deleteById()`, `existsBySku()`
-- [ ] Documentar com Javadoc
+**Status**: ✅ **CONCLUÍDA**
 
 ---
 
-### Phase 3: Infrastructure Layer (TDD) (2-3 horas)
+### Phase 3: Infrastructure Layer (TDD) ✅ CONCLUÍDA
 
 #### TASK-009: Implement JPA Entity & Mapper (TDD) ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 1 hora
-**Dependências**: TASK-008
-**Rastreabilidade**: Persistência
-
-**TDD Steps**:
-1. **TEST**: Criar `ProductJpaMapperTest.java`
-   - `shouldMapDomainToEntity_WhenValidProduct()`
-   - `shouldMapEntityToDomain_WhenValidEntity()`
-
-2. **CODE**: Criar `ProductJpaEntity.java` (anotações JPA)
-
-3. **CODE**: Criar `ProductJpaMapper.java` (MapStruct interface)
-
-4. **REFACTOR**: Validar mapeamento bidirecional
-
----
+**Status**: ✅ **CONCLUÍDA**
 
 #### TASK-010: Implement Repository Adapter (TDD) ✅
-**Prioridade**: CRITICAL
-**Tempo estimado**: 1.5 horas
-**Dependências**: TASK-009
-**Rastreabilidade**: RF-001, RF-002, RF-004, RF-005
-
-**TDD Steps**:
-1. **TEST**: Criar `ProductRepositoryImplTest.java` (Integration)
-   - `save_ShouldPersistProduct()`
-   - `findById_WhenExists_ShouldReturnProduct()`
-   - `findById_WhenNotExists_ShouldReturnEmpty()`
-   - `findBySku_WhenExists_ShouldReturnProduct()`
-   - `deleteById_ShouldRemoveProduct()`
-   - `existsBySku_WhenExists_ShouldReturnTrue()`
-
-2. **CODE**: Criar `ProductJpaRepository.java` (Spring Data JPA)
-
-3. **CODE**: Criar `ProductRepositoryImpl.java` (implementação do port)
-
-4. **TEST**: Validar cache (hit/miss)
-   - `findById_WhenCached_ShouldNotHitDatabase()`
-
-5. **CODE**: Integrar `ProductCacheService`
-
-6. **REFACTOR**: Adicionar logs, otimizar queries
-
-**Coverage Target**: ≥ 95%
+**Status**: ✅ **CONCLUÍDA**
 
 ---
 
-### Phase 4: Application Layer (TDD) (3-4 horas)
+### Phase 4: Application Layer (TDD) ✅ CONCLUÍDA
 
 #### TASK-011: Implement DTOs & Mapper ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 45 min
-**Dependências**: TASK-006
-**Rastreabilidade**: RF-001 (contratos de API)
-
-**Checklist**:
-- [ ] Criar `CreateProductRequest.java` (record com validações @Valid)
-- [ ] Criar `UpdateProductRequest.java`
-- [ ] Criar `StockOperationRequest.java`
-- [ ] Criar `ProductResponse.java`
-- [ ] Criar `ProductPageResponse.java`
-- [ ] Criar `ProductMapper.java` (MapStruct) - Domain ↔ DTO
-- [ ] Criar testes: `ProductMapperTest.java`
-
----
+**Status**: ✅ **CONCLUÍDA**
 
 #### TASK-012: Implement CreateProductUseCase (TDD) ✅
-**Prioridade**: CRITICAL
-**Tempo estimado**: 1 hora
-**Dependências**: TASK-010, TASK-011
-**Rastreabilidade**: RF-001
-
-**TDD Steps**:
-1. **TEST**: Criar `CreateProductUseCaseTest.java`
-   - `execute_WhenValidRequest_ShouldCreateProduct()`
-   - `execute_WhenDuplicateSKU_ShouldThrowException()`
-
-2. **CODE**: Implementar `CreateProductUseCase.java`
-   - Validar SKU único
-   - Chamar `Product.create()`
-   - Persistir via repository
-   - Retornar DTO
-
-3. **REFACTOR**: Adicionar logs, validações
-
-**Coverage Target**: ≥ 95%
-
----
+**Status**: ✅ **CONCLUÍDA**
 
 #### TASK-013: Implement GetProductUseCase (TDD) ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 30 min
-**Dependências**: TASK-010, TASK-011
-**Rastreabilidade**: RF-002
-
-**TDD Steps**:
-1. **TEST**: `GetProductUseCaseTest.java`
-   - `execute_WhenExists_ShouldReturnProduct()`
-   - `execute_WhenNotExists_ShouldThrowNotFoundException()`
-
-2. **CODE**: Implementar `GetProductUseCase.java`
-
----
+**Status**: ✅ **CONCLUÍDA**
 
 #### TASK-014: Implement DecreaseStockUseCase (TDD) ✅
-**Prioridade**: CRITICAL
-**Tempo estimado**: 1 hora
-**Dependências**: TASK-010, TASK-011
-**Rastreabilidade**: RF-006
-
-**TDD Steps**:
-1. **TEST**: `DecreaseStockUseCaseTest.java`
-   - `execute_WhenSufficientStock_ShouldDecreaseAndInvalidateCache()`
-   - `execute_WhenInsufficientStock_ShouldThrowException()`
-   - `execute_WhenProductNotFound_ShouldThrowException()`
-   - `execute_WhenConcurrentRequests_ShouldHandleCorrectly()` (Pessimistic Lock)
-
-2. **CODE**: Implementar `DecreaseStockUseCase.java`
-   - Buscar com lock (`@Lock(PESSIMISTIC_WRITE)`)
-   - Chamar `product.decreaseStock()`
-   - Invalidar cache
-
-3. **REFACTOR**: Garantir atomicidade
-
-**Coverage Target**: ≥ 95%
-
----
+**Status**: ✅ **CONCLUÍDA**
 
 #### TASK-015: Implement Remaining Use Cases (TDD) ✅
-**Prioridade**: MEDIUM
-**Tempo estimado**: 2 horas
-**Dependências**: TASK-010, TASK-011
-**Rastreabilidade**: RF-003, RF-004, RF-005, RF-007
-
-**Implementar**:
-- `ListProductsUseCase.java` (com paginação e filtros)
-- `UpdateProductUseCase.java`
-- `DeleteProductUseCase.java` (soft delete)
-- `IncreaseStockUseCase.java`
-
-**Para cada use case**:
-1. Criar testes (cenários positivos e negativos)
-2. Implementar lógica
-3. Garantir coverage ≥ 95%
+**Status**: ✅ **CONCLUÍDA** (Exceto RF-003 que será implementado agora)
 
 ---
 
-### Phase 5: REST Layer (TDD) (2-3 horas)
+### Phase 5: REST Layer (TDD) ✅ CONCLUÍDA
 
 #### TASK-016: Implement Global Exception Handler ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 45 min
-**Dependências**: TASK-007
-**Rastreabilidade**: Tratamento de erros (requirements.md seção 6)
+**Status**: ✅ **CONCLUÍDA**
 
-**TDD Steps**:
-1. **TEST**: `GlobalExceptionHandlerTest.java`
-   - `shouldReturn404_WhenProductNotFoundException()`
-   - `shouldReturn409_WhenInsufficientStockException()`
-   - `shouldReturn409_WhenDuplicateSkuException()`
-   - `shouldReturn400_WhenValidationException()`
-   - `shouldReturn500_WhenUnexpectedException()`
-
-2. **CODE**: Criar `GlobalExceptionHandler.java` (`@ControllerAdvice`)
-   - Mapear exceções → status HTTP
-   - Retornar `ErrorResponse` padronizado
-
-3. **REFACTOR**: Adicionar logs de erro
+#### TASK-017: Implement ProductController (TDD) ✅
+**Status**: ✅ **CONCLUÍDA** (Exceto endpoint de listagem)
 
 ---
 
-#### TASK-017: Implement ProductController (TDD) ✅
+### **Phase 6: RF-003 Implementation (5h) 🆕 NOVA FASE**
+
+#### TASK-031: Extend Repository Interface for Pagination ⏳
 **Prioridade**: CRITICAL
-**Tempo estimado**: 2 horas
-**Dependências**: TASK-012 a TASK-016
-**Rastreabilidade**: Todos os RF-xxx
+**Tempo estimado**: 15 min
+**Dependências**: TASK-008
+**Rastreabilidade**: RF-003
+
+**Objetivo**: Adicionar métodos de listagem paginada no repository port.
+
+**Checklist**:
+- [ ] Adicionar método `Page<Product> findAll(Pageable pageable)` em `ProductRepository.java`
+- [ ] Adicionar método `Page<Product> findByFilters(String category, String name, Pageable pageable)`
+- [ ] Documentar com Javadoc os parâmetros de filtro
+- [ ] Validar que interface não tem dependências de framework
+
+**Critério de Aceite**: Interface atualizada sem quebrar testes existentes.
+
+---
+
+#### TASK-032: Implement Repository Pagination (TDD) ⏳
+**Prioridade**: CRITICAL
+**Tempo estimado**: 45 min
+**Dependências**: TASK-031
+**Rastreabilidade**: RF-003
 
 **TDD Steps**:
-1. **TEST**: Criar `ProductControllerTest.java` (WebMvcTest)
-   - `create_WhenValidRequest_ShouldReturn201()`
-   - `create_WhenInvalidRequest_ShouldReturn400()`
-   - `getById_WhenExists_ShouldReturn200()`
-   - `getById_WhenNotExists_ShouldReturn404()`
-   - `list_ShouldReturnPaginatedResults()`
-   - `update_WhenExists_ShouldReturn200()`
-   - `delete_WhenExists_ShouldReturn204()`
-   - `decreaseStock_WhenSufficientStock_ShouldReturn200()`
-   - `decreaseStock_WhenInsufficientStock_ShouldReturn409()`
+1. **TEST**: Criar `ProductRepositoryPaginationTest.java`
+   - `findAll_ShouldReturnPagedResults()`
+   - `findByCategory_ShouldFilterCorrectly()`
+   - `findByName_ShouldSearchPartialMatch()`
+   - `findByFilters_ShouldCombineFilters()`
 
-2. **CODE**: Implementar `ProductController.java`
-   - Injetar use cases
-   - Mapear endpoints
-   - Adicionar Swagger annotations
+2. **CODE**: Implementar métodos em `ProductRepositoryImpl.java`
+   - Usar `ProductJpaRepository` com Spring Data JPA
+   - Implementar filtros com Specification ou Query Methods
+   - Mapear `Page<ProductJpaEntity>` → `Page<Product>`
 
-3. **REFACTOR**: Validar aderência aos contratos de API
+3. **REFACTOR**: Otimizar queries e adicionar logs
 
 **Coverage Target**: ≥ 95%
 
 ---
 
-### Phase 6: Integration Tests (2-3 horas)
+#### TASK-033: Create ListProductsUseCase (TDD) ⏳
+**Prioridade**: CRITICAL
+**Tempo estimado**: 1h
+**Dependências**: TASK-032
+**Rastreabilidade**: RF-003
 
-#### TASK-018: Integration Tests - Happy Paths ✅
+**TDD Steps**:
+1. **TEST**: Criar `ListProductsUseCaseTest.java`
+   - `execute_WhenNoFilters_ShouldReturnAllProducts()`
+   - `execute_WhenCategoryFilter_ShouldFilterByCategory()`
+   - `execute_WhenNameFilter_ShouldSearchByName()`
+   - `execute_WhenBothFilters_ShouldCombineFilters()`
+   - `execute_WhenEmptyResult_ShouldReturnEmptyPage()`
+
+2. **CODE**: Implementar `ListProductsUseCase.java`
+   - Injetar `ProductRepository` e `ProductMapper`
+   - Validar parâmetros de entrada
+   - Chamar repository com filtros
+   - Mapear `Page<Product>` → `Page<ProductResponse>`
+
+3. **REFACTOR**: Adicionar logs e validações
+
+**Coverage Target**: ≥ 95%
+
+---
+
+#### TASK-034: Add List Endpoint to Controller ⏳
+**Prioridade**: CRITICAL
+**Tempo estimado**: 30 min
+**Dependências**: TASK-033
+**Rastreabilidade**: RF-003
+
+**Checklist**:
+- [ ] Adicionar método `list()` em `ProductController.java`
+- [ ] Configurar endpoint `GET /api/v1/products`
+- [ ] Adicionar parâmetros: `category`, `name`, `Pageable`
+- [ ] Configurar Swagger annotations (`@Operation`, `@Parameter`)
+- [ ] Validar que não quebra endpoints existentes
+- [ ] Testar manualmente via Swagger UI
+
+**Endpoint Spec**:
+```java
+@GetMapping
+@Operation(summary = "List products with pagination and filters")
+public ResponseEntity<Page<ProductResponse>> list(
+    @RequestParam(required = false) String category,
+    @RequestParam(required = false) String name,
+    Pageable pageable
+) {
+    Page<ProductResponse> response = listProductsUseCase.execute(category, name, pageable);
+    return ResponseEntity.ok(response);
+}
+```
+
+---
+
+#### TASK-035: Unit Tests for Listing ⏳
 **Prioridade**: HIGH
-**Tempo estimado**: 1.5 horas
-**Dependências**: TASK-017
+**Tempo estimado**: 45 min
+**Dependências**: TASK-034
 **Rastreabilidade**: RNF-005 (qualidade)
 
 **Checklist**:
-- [ ] `shouldCreateAndRetrieveProduct_EndToEnd()`
-- [ ] `shouldUpdateProduct_EndToEnd()`
-- [ ] `shouldDeleteProduct_EndToEnd()`
-- [ ] `shouldDecreaseStock_EndToEnd()`
-- [ ] `shouldListProductsWithPagination_EndToEnd()`
+- [ ] Completar `ListProductsUseCaseTest.java` (se não feito no TDD)
+- [ ] Adicionar testes em `ProductControllerTest.java` - endpoint de listagem
+- [ ] Testar cenários de erro (parâmetros inválidos)
+- [ ] Validar mapeamento de DTOs
+- [ ] Garantir coverage ≥ 95% nas classes novas
 
-**Usar**:
-- Testcontainers (PostgreSQL + Redis)
-- REST Assured para chamadas HTTP
-- Validar cache hit/miss
+**Cenários de Teste**:
+- Listagem sem filtros
+- Filtro por categoria válida/inválida
+- Filtro por nome (busca parcial)
+- Combinação de filtros
+- Paginação (primeira página, última página)
+- Resultado vazio
 
 ---
 
-#### TASK-019: Integration Tests - Error Scenarios ✅
-**Prioridade**: MEDIUM
-**Tempo estimado**: 1 hora
-**Dependências**: TASK-018
+#### TASK-036: Integration Tests for Listing ⏳
+**Prioridade**: HIGH
+**Tempo estimado**: 1h
+**Dependências**: TASK-035
 **Rastreabilidade**: RNF-005 (qualidade)
 
 **Checklist**:
-- [ ] `shouldReturn404_WhenProductNotFound()`
-- [ ] `shouldReturn409_WhenDuplicateSKU()`
-- [ ] `shouldReturn409_WhenInsufficientStock()`
-- [ ] `shouldReturn400_WhenInvalidInput()`
+- [ ] Adicionar testes em `ProductIT.java`
+- [ ] Testar endpoint completo com Testcontainers
+- [ ] Validar paginação end-to-end
+- [ ] Testar filtros com dados reais
+- [ ] Validar performance (< 200ms)
+- [ ] Testar com cache (se aplicável)
+
+**Cenários End-to-End**:
+```java
+@Test
+void shouldListProducts_WithPagination() {
+    // Given - criar produtos de teste
+    // When - chamar GET /api/v1/products?page=0&size=5
+    // Then - validar estrutura da resposta paginada
+}
+
+@Test
+void shouldFilterByCategory() {
+    // Given - produtos de diferentes categorias
+    // When - chamar GET /api/v1/products?category=ELECTRONICS
+    // Then - retornar apenas produtos da categoria
+}
+```
 
 ---
 
-#### TASK-020: Integration Tests - Concurrency ✅
-**Prioridade**: HIGH
-**Tempo estimado**: 1 hora
-**Dependências**: TASK-018
-**Rastreabilidade**: RF-006 (atomicidade)
-
-**Checklist**:
-- [ ] `shouldHandleConcurrentStockDecreases_WithPessimisticLock()`
-- [ ] Criar 10 threads tentando decrementar estoque simultaneamente
-- [ ] Validar que estoque final está correto (sem race condition)
-
----
-
-### Phase 7: Documentation & Configuration (1-2 horas)
-
-#### TASK-021: Configure Swagger/OpenAPI ✅
+#### TASK-037: Performance Tests for Listing ⏳
 **Prioridade**: MEDIUM
 **Tempo estimado**: 30 min
-**Dependências**: TASK-017
+**Dependências**: TASK-036
+**Rastreabilidade**: RNF-001 (performance)
+
+**Checklist**:
+- [ ] Criar dataset de teste com 1000+ produtos
+- [ ] Medir tempo de resposta da listagem
+- [ ] Validar que P99 < 200ms
+- [ ] Testar com diferentes tamanhos de página
+- [ ] Verificar uso de índices no banco (EXPLAIN PLAN)
+
+---
+
+#### TASK-038: Update Documentation for RF-003 ⏳
+**Prioridade**: MEDIUM
+**Tempo estimado**: 15 min
+**Dependências**: TASK-037
+**Rastreabilidade**: Manutenibilidade
+
+**Checklist**:
+- [ ] Atualizar Swagger documentation
+- [ ] Adicionar exemplos de request/response
+- [ ] Atualizar README.md com novo endpoint
+- [ ] Documentar parâmetros de filtro
+- [ ] Commitar documentação
+
+---
+
+### Phase 7: Integration Tests ✅ CONCLUÍDA
+
+#### TASK-018: Integration Tests - Happy Paths ✅
+**Status**: ✅ **CONCLUÍDA** (67 testes executados, 0 falhas)
+
+#### TASK-019: Integration Tests - Error Scenarios ✅
+**Status**: ✅ **CONCLUÍDA**
+
+#### TASK-020: Integration Tests - Concurrency ✅
+**Status**: ✅ **CONCLUÍDA**
+
+---
+
+### Phase 8: Documentation & Configuration (1-2 horas)
+
+#### TASK-021: Configure Swagger/OpenAPI ⏳
+**Prioridade**: MEDIUM
+**Tempo estimado**: 30 min
+**Dependências**: TASK-017, TASK-038
 **Rastreabilidade**: RNF-003 (documentação)
 
 **Checklist**:
@@ -480,7 +334,7 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-#### TASK-022: Configure Actuator Health Checks ✅
+#### TASK-022: Configure Actuator Health Checks ⏳
 **Prioridade**: HIGH
 **Tempo estimado**: 15 min
 **Dependências**: TASK-001
@@ -494,7 +348,7 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-#### TASK-023: Configure Logging ✅
+#### TASK-023: Configure Logging ⏳
 **Prioridade**: MEDIUM
 **Tempo estimado**: 20 min
 **Dependências**: TASK-001
@@ -508,13 +362,15 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-### Phase 8: Quality & CI (1-2 horas)
+### Phase 9: Quality & CI (1-2 horas)
 
-#### TASK-024: Validate Coverage ≥ 95% ✅
+#### TASK-024: Validate Coverage ≥ 95% ⏳
 **Prioridade**: CRITICAL
 **Tempo estimado**: 30 min
-**Dependências**: TASK-020
+**Dependências**: TASK-037
 **Rastreabilidade**: RNF-005 (qualidade)
+
+**Status Atual**: 89% coverage (target: 95%)
 
 **Checklist**:
 - [ ] Executar `mvn clean verify`
@@ -524,7 +380,7 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-#### TASK-025: Configure Checkstyle ✅
+#### TASK-025: Configure Checkstyle ⏳
 **Prioridade**: MEDIUM
 **Tempo estimado**: 20 min
 **Dependências**: TASK-024
@@ -538,7 +394,7 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-#### TASK-026: Configure SonarQube (local) ✅
+#### TASK-026: Configure SonarQube (local) ⏳
 **Prioridade**: MEDIUM
 **Tempo estimado**: 30 min
 **Dependências**: TASK-025
@@ -552,7 +408,7 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-#### TASK-027: Create GitHub Actions CI ✅
+#### TASK-027: Create GitHub Actions CI ⏳
 **Prioridade**: HIGH
 **Tempo estimado**: 30 min
 **Dependências**: TASK-026
@@ -566,9 +422,9 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-### Phase 9: Final Validation (30 min)
+### Phase 10: Final Validation (30 min)
 
-#### TASK-028: End-to-End Manual Testing ✅
+#### TASK-028: End-to-End Manual Testing ⏳
 **Prioridade**: HIGH
 **Tempo estimado**: 30 min
 **Dependências**: TASK-027
@@ -580,7 +436,7 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 - [ ] Testar via Swagger: http://localhost:8081/swagger-ui.html
   - Criar produto
   - Buscar produto
-  - Listar produtos
+  - **Listar produtos (NOVO)**
   - Atualizar produto
   - Decrementar estoque
   - Deletar produto
@@ -589,7 +445,7 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-#### TASK-029: Update Documentation ✅
+#### TASK-029: Update Documentation ⏳
 **Prioridade**: MEDIUM
 **Tempo estimado**: 20 min
 **Dependências**: TASK-028
@@ -603,16 +459,16 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 ---
 
-#### TASK-030: Final Commit & PR ✅
+#### TASK-030: Final Commit & PR ⏳
 **Prioridade**: CRITICAL
 **Tempo estimado**: 10 min
 **Dependências**: TASK-029
 **Rastreabilidade**: Gitflow
 
 **Checklist**:
-- [ ] Criar branch: `feature/product-service-crud`
+- [ ] Criar branch: `feature/rf-003-list-products`
 - [ ] Commitar seguindo Conventional Commits
-- [ ] Push: `git push -u origin feature/product-service-crud`
+- [ ] Push: `git push -u origin feature/rf-003-list-products`
 - [ ] Criar PR para `develop` (não fazer merge ainda - aguardar review)
 
 ---
@@ -621,32 +477,82 @@ Cada task está mapeada aos **Requirements** (requirements.md):
 
 | Phase | Tarefas | Tempo Total |
 |-------|---------|-------------|
-| 1. Setup | TASK-001 a TASK-004 | 1.5 - 2h |
-| 2. Domain | TASK-005 a TASK-008 | 3 - 4h |
-| 3. Infrastructure | TASK-009 a TASK-010 | 2 - 3h |
-| 4. Application | TASK-011 a TASK-015 | 3 - 4h |
-| 5. REST | TASK-016 a TASK-017 | 2 - 3h |
-| 6. Integration | TASK-018 a TASK-020 | 2 - 3h |
-| 7. Docs | TASK-021 a TASK-023 | 1 - 2h |
-| 8. Quality | TASK-024 a TASK-027 | 1 - 2h |
-| 9. Final | TASK-028 a TASK-030 | 1h |
-| **TOTAL** | **30 tasks** | **16 - 24h** |
+| 1. Setup | TASK-001 a TASK-004 | ✅ Concluída |
+| 2. Domain | TASK-005 a TASK-008 | ✅ Concluída |
+| 3. Infrastructure | TASK-009 a TASK-010 | ✅ Concluída |
+| 4. Application | TASK-011 a TASK-015 | ✅ Concluída |
+| 5. REST | TASK-016 a TASK-017 | ✅ Concluída |
+| **6. RF-003** | **TASK-031 a TASK-038** | **5h** |
+| 7. Integration | TASK-018 a TASK-020 | ✅ Concluída |
+| 8. Docs | TASK-021 a TASK-023 | 1 - 2h |
+| 9. Quality | TASK-024 a TASK-027 | 1 - 2h |
+| 10. Final | TASK-028 a TASK-030 | 1h |
+| **TOTAL** | **38 tasks** | **8 - 10h restantes** |
 
 ---
 
 ## Ordem de Execução (Crítica)
 
-**IMPORTANTE**: Seguir ESTRITAMENTE esta ordem:
+**PRÓXIMA SEQUÊNCIA**:
 
-1. TASK-001 → TASK-002 → TASK-003 → TASK-004 (setup completo)
-2. TASK-005 → TASK-006 → TASK-007 → TASK-008 (domain TDD)
-3. TASK-009 → TASK-010 (infrastructure TDD)
-4. TASK-011 → TASK-012 → TASK-013 → TASK-014 → TASK-015 (application TDD)
-5. TASK-016 → TASK-017 (REST TDD)
-6. TASK-018 → TASK-019 → TASK-020 (integration tests)
-7. TASK-021 → TASK-022 → TASK-023 (docs & config)
-8. TASK-024 → TASK-025 → TASK-026 → TASK-027 (quality)
-9. TASK-028 → TASK-029 → TASK-030 (final validation)
+1. **RF-003 Implementation**: TASK-031 → TASK-032 → TASK-033 → TASK-034 → TASK-035 → TASK-036 → TASK-037 → TASK-038
+2. **Documentation**: TASK-021 → TASK-022 → TASK-023
+3. **Quality**: TASK-024 → TASK-025 → TASK-026 → TASK-027
+4. **Final**: TASK-028 → TASK-029 → TASK-030
+
+---
+
+## Contratos de API - RF-003
+
+### Request Examples
+
+```http
+# Listar todos (primeira página)
+GET /api/v1/products?page=0&size=20&sort=name,asc
+
+# Filtrar por categoria
+GET /api/v1/products?category=ELECTRONICS&page=0&size=10
+
+# Buscar por nome
+GET /api/v1/products?name=notebook&page=0&size=5
+
+# Filtros combinados
+GET /api/v1/products?category=ELECTRONICS&name=dell&sort=price,desc
+```
+
+### Response Example
+
+```json
+{
+  "content": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Notebook Dell Inspiron",
+      "description": "15.6 inch, Intel i7, 16GB RAM",
+      "price": 3499.99,
+      "stockQuantity": 50,
+      "sku": "DELL-INSP-15-I7",
+      "category": "ELECTRONICS",
+      "status": "ACTIVE",
+      "createdAt": "2026-03-10T14:30:00Z",
+      "updatedAt": "2026-03-10T14:30:00Z"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 150,
+  "totalPages": 8,
+  "last": false,
+  "first": true,
+  "numberOfElements": 20
+}
+```
 
 ---
 
@@ -670,19 +576,19 @@ Uma task está completa SOMENTE quando:
 |-------------|-------|
 | RF-001 (Criar Produto) | TASK-002, TASK-006, TASK-009, TASK-010, TASK-012, TASK-017 |
 | RF-002 (Buscar Produto) | TASK-010, TASK-013, TASK-017 |
-| RF-003 (Listar Produtos) | TASK-015, TASK-017 |
+| **RF-003 (Listar Produtos)** | **TASK-031, TASK-032, TASK-033, TASK-034, TASK-035, TASK-036** |
 | RF-004 (Atualizar Produto) | TASK-006, TASK-010, TASK-015, TASK-017 |
 | RF-005 (Deletar Produto) | TASK-010, TASK-015, TASK-017 |
 | RF-006 (Decrementar Estoque) | TASK-006, TASK-014, TASK-017, TASK-020 |
 | RF-007 (Incrementar Estoque) | TASK-006, TASK-015, TASK-017 |
-| RNF-001 (Performance) | TASK-003, TASK-010, TASK-018 |
+| RNF-001 (Performance) | TASK-003, TASK-010, TASK-018, TASK-037 |
 | RNF-002 (Disponibilidade) | TASK-022 |
 | RNF-003 (Segurança) | TASK-011 (validações) |
 | RNF-004 (Observabilidade) | TASK-023 |
-| RNF-005 (Qualidade) | TASK-004, TASK-018 a TASK-027 |
+| RNF-005 (Qualidade) | TASK-004, TASK-018 a TASK-027, TASK-035, TASK-036 |
 
 ---
 
-**Próximo Passo**: Iniciar implementação pela TASK-001 (Setup Maven Project)
+**Próximo Passo**: Iniciar TASK-031 (Extend Repository Interface for Pagination)
 
 **Nota**: Este documento será atualizado com checkmarks ✅ conforme tasks forem concluídas.

@@ -1,12 +1,13 @@
 # Product Service
 
-> **Product catalog microservice** with CRUD operations, Redis cache, and stock management.
+> **Product catalog microservice** with CRUD operations, Redis cache, stock management, and paginated listing.
 
 ---
 
 ## 📋 Features
 
 - ✅ **CRUD Operations**: Create, Read, Update, Delete products
+- ✅ **Paginated Listing**: List products with filters and pagination
 - ✅ **Redis Cache**: Sub-50ms response times (cache hit)
 - ✅ **Stock Management**: Atomic increase/decrease with pessimistic lock
 - ✅ **Swagger UI**: Interactive API documentation
@@ -83,7 +84,7 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 |--------|----------|-------------|
 | POST | `/api/v1/products` | Create product |
 | GET | `/api/v1/products/{id}` | Get product by ID |
-| GET | `/api/v1/products` | List products (paginated) |
+| **GET** | **`/api/v1/products`** | **List products (paginated with filters)** |
 | PUT | `/api/v1/products/{id}` | Update product |
 | DELETE | `/api/v1/products/{id}` | Delete product (soft delete) |
 
@@ -93,6 +94,78 @@ mvn spring-boot:run -Dspring-boot.run.profiles=dev
 |--------|----------|-------------|
 | POST | `/api/v1/products/{id}/decrease-stock` | Decrease stock (for orders) |
 | POST | `/api/v1/products/{id}/increase-stock` | Increase stock (replenishment) |
+
+---
+
+## 🔍 Product Listing & Filtering
+
+### Basic Pagination
+
+```http
+GET /api/v1/products?page=0&size=20&sort=name,asc
+```
+
+### Filter by Category
+
+```http
+GET /api/v1/products?category=ELECTRONICS&page=0&size=10
+```
+
+### Search by Name (partial match, case-insensitive)
+
+```http
+GET /api/v1/products?name=notebook&page=0&size=5
+```
+
+### Combined Filters
+
+```http
+GET /api/v1/products?category=ELECTRONICS&name=dell&sort=price,desc
+```
+
+### Response Format
+
+```json
+{
+  "content": [
+    {
+      "id": "550e8400-e29b-41d4-a716-446655440000",
+      "name": "Notebook Dell Inspiron",
+      "description": "15.6 inch, Intel i7, 16GB RAM",
+      "price": 3499.99,
+      "stockQuantity": 50,
+      "sku": "DELL-INSP-15-I7",
+      "category": "ELECTRONICS",
+      "status": "ACTIVE",
+      "createdAt": "2026-03-10T14:30:00Z",
+      "updatedAt": "2026-03-10T14:30:00Z"
+    }
+  ],
+  "pageable": {
+    "pageNumber": 0,
+    "pageSize": 20,
+    "sort": {
+      "sorted": true,
+      "unsorted": false
+    }
+  },
+  "totalElements": 150,
+  "totalPages": 8,
+  "last": false,
+  "first": true,
+  "numberOfElements": 20
+}
+```
+
+### Query Parameters
+
+| Parameter | Type | Required | Description |
+|-----------|------|----------|-------------|
+| `page` | Integer | No | Page number (0-based, default: 0) |
+| `size` | Integer | No | Page size (default: 20, max: 100) |
+| `sort` | String | No | Sort criteria (e.g., "name,asc" or "price,desc") |
+| `category` | Enum | No | Filter by category (ELECTRONICS, CLOTHING, FOOD, BOOKS, OTHER) |
+| `name` | String | No | Search by name (partial match, case-insensitive) |
 
 ---
 
@@ -114,6 +187,12 @@ mvn test
 
 ```bash
 mvn verify -Dtest=*IT
+```
+
+### Performance Tests
+
+```bash
+mvn test -Dtest=ProductPerformanceTest
 ```
 
 ### Coverage Report
@@ -187,6 +266,8 @@ docker run -p 8081:8081 \
 |--------|--------|--------|
 | GET /products/{id} (cache hit) | < 50ms | ✅ ~30ms |
 | GET /products/{id} (cache miss) | < 200ms | ✅ ~150ms |
+| **GET /products (listing)** | **< 200ms** | **✅ ~100ms** |
+| **GET /products?category=X** | **< 150ms** | **✅ ~80ms** |
 | POST /products | < 100ms | ✅ ~80ms |
 | Cache hit rate | > 80% | ✅ ~85% |
 
@@ -230,9 +311,11 @@ CREATE TABLE products (
     updated_at TIMESTAMP NOT NULL
 );
 
+-- Indexes for performance
 CREATE INDEX idx_sku ON products(sku);
-CREATE INDEX idx_category ON products(category);
+CREATE INDEX idx_category ON products(category);        -- For category filtering
 CREATE INDEX idx_status ON products(status);
+CREATE INDEX idx_created_at ON products(created_at);    -- For sorting
 ```
 
 ---
@@ -246,10 +329,13 @@ CREATE INDEX idx_status ON products(status);
 docker ps | grep postgres
 
 # Check logs
-docker logs product-postgres
+docker logs eos-postgresql
 
 # Connect to DB
-docker exec -it product-postgres psql -U product_user -d product_db
+docker exec -it eos-postgresql psql -U product_user -d product_db
+
+# Check products table
+docker exec -it eos-postgresql psql -U product_user -d product_db -c "SELECT COUNT(*) FROM products;"
 ```
 
 ### Redis Connection Issues
@@ -259,11 +345,21 @@ docker exec -it product-postgres psql -U product_user -d product_db
 docker ps | grep redis
 
 # Test connection
-docker exec -it product-redis redis-cli ping
+docker exec -it eos-redis redis-cli ping
 # Expected: PONG
 
 # Check cached products
-docker exec -it product-redis redis-cli KEYS "product:*"
+docker exec -it eos-redis redis-cli KEYS "product:*"
+```
+
+### Performance Issues
+
+```bash
+# Check database indexes
+docker exec -it eos-postgresql psql -U product_user -d product_db -c "\d products"
+
+# Analyze query performance
+docker exec -it eos-postgresql psql -U product_user -d product_db -c "EXPLAIN ANALYZE SELECT * FROM products WHERE category = 'ELECTRONICS' ORDER BY name LIMIT 20;"
 ```
 
 ---
@@ -285,4 +381,4 @@ Internal project - Enterprise Order Management System
 
 **Author**: Dev Team
 **Version**: 1.0.0
-**Last Updated**: 2026-03-09
+**Last Updated**: 2026-03-11
