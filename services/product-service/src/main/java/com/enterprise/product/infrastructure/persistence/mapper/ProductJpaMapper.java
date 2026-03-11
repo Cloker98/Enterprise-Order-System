@@ -1,7 +1,9 @@
 package com.enterprise.product.infrastructure.persistence.mapper;
 
+import com.enterprise.product.domain.model.Money;
 import com.enterprise.product.domain.model.Product;
 import com.enterprise.product.domain.model.ProductId;
+import com.enterprise.product.domain.model.ProductSnapshot;
 import com.enterprise.product.infrastructure.persistence.entity.ProductJpaEntity;
 import org.mapstruct.Mapper;
 import org.mapstruct.Mapping;
@@ -34,11 +36,11 @@ public interface ProductJpaMapper {
    * @return domain Product
    */
   default Product toDomain(ProductJpaEntity entity) {
-    return Product.reconstitute(
+    ProductSnapshot snapshot = new ProductSnapshot(
         new ProductId(entity.getId()),
         entity.getName(),
         entity.getDescription(),
-        entity.getPrice(),
+        Money.brl(entity.getPrice()), // Convert BigDecimal to Money
         entity.getStockQuantity(),
         entity.getSku(),
         entity.getCategory(),
@@ -46,5 +48,6 @@ public interface ProductJpaMapper {
         entity.getCreatedAt(),
         entity.getUpdatedAt()
     );
+    return Product.reconstitute(snapshot);
   }
 }

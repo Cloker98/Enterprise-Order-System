@@ -9,7 +9,8 @@ import java.time.LocalDateTime;
  *
  * <p>Represents a product in the catalog with business logic for stock management.
  *
- * <p>This is a PURE domain class - NO framework annotations (@Entity, @Table, etc).
+ * <p>This is a PURE domain class - NO framework annotations (@Entity, @Table,
+ * etc).
  * JPA mapping is done separately in infrastructure layer.
  *
  * <p>Immutability: ID, SKU, and createdAt are immutable after creation.
@@ -33,12 +34,12 @@ public class Product {
   /**
    * Private constructor for creating new products.
    *
-   * @param name product name
-   * @param description product description
-   * @param price product price
+   * @param name          product name
+   * @param description   product description
+   * @param price         product price
    * @param stockQuantity initial stock quantity
-   * @param sku stock keeping unit (unique identifier)
-   * @param category product category
+   * @param sku           stock keeping unit (unique identifier)
+   * @param category      product category
    */
   private Product(
       String name,
@@ -63,52 +64,33 @@ public class Product {
   }
 
   /**
-   * Private constructor for reconstituting from database.
+   * Private constructor for reconstituting from database using ProductSnapshot.
+   * This avoids S107 code smell (too many parameters).
    *
-   * @param id product ID
-   * @param name product name
-   * @param description product description
-   * @param price product price
-   * @param stockQuantity stock quantity
-   * @param sku stock keeping unit
-   * @param category product category
-   * @param status product status
-   * @param createdAt creation timestamp
-   * @param updatedAt last update timestamp
+   * @param snapshot snapshot containing all product data
    */
-  private Product(
-      ProductId id,
-      String name,
-      String description,
-      Money price,
-      int stockQuantity,
-      String sku,
-      ProductCategory category,
-      ProductStatus status,
-      LocalDateTime createdAt,
-      LocalDateTime updatedAt) {
-
-    this.id = id;
-    this.name = name;
-    this.description = description;
-    this.price = price;
-    this.stockQuantity = stockQuantity;
-    this.sku = sku;
-    this.category = category;
-    this.status = status;
-    this.createdAt = createdAt;
-    this.updatedAt = updatedAt;
+  private Product(ProductSnapshot snapshot) {
+    this.id = snapshot.id();
+    this.name = snapshot.name();
+    this.description = snapshot.description();
+    this.price = snapshot.price();
+    this.stockQuantity = snapshot.stockQuantity();
+    this.sku = snapshot.sku();
+    this.category = snapshot.category();
+    this.status = snapshot.status();
+    this.createdAt = snapshot.createdAt();
+    this.updatedAt = snapshot.updatedAt();
   }
 
   /**
    * Factory method to create a new product.
    *
-   * @param name product name (required, max 200 chars)
-   * @param description product description (max 1000 chars)
-   * @param price product price (must be > 0)
+   * @param name          product name (required, max 200 chars)
+   * @param description   product description (max 1000 chars)
+   * @param price         product price (must be > 0)
    * @param stockQuantity initial stock (must be >= 0)
-   * @param sku stock keeping unit (required, unique, alphanumeric)
-   * @param category product category
+   * @param sku           stock keeping unit (required, unique, alphanumeric)
+   * @param category      product category
    * @return new Product instance with ACTIVE status
    * @throws IllegalArgumentException if validation fails
    */
@@ -128,34 +110,34 @@ public class Product {
    * Factory method to reconstitute product from persistence.
    *
    * <p>Used by infrastructure layer to rebuild domain objects from database.
+   * Uses ProductSnapshot to avoid S107 code smell (too many parameters).
    *
-   * @param id product ID
-   * @param name product name
-   * @param description product description
-   * @param price product price
-   * @param stockQuantity stock quantity
-   * @param sku stock keeping unit
-   * @param category product category
-   * @param status product status
-   * @param createdAt creation timestamp
-   * @param updatedAt last update timestamp
+   * @param snapshot snapshot containing all product data
    * @return reconstituted Product instance
    */
-  public static Product reconstitute(
-      ProductId id,
-      String name,
-      String description,
-      BigDecimal price,
-      int stockQuantity,
-      String sku,
-      ProductCategory category,
-      ProductStatus status,
-      LocalDateTime createdAt,
-      LocalDateTime updatedAt) {
+  public static Product reconstitute(ProductSnapshot snapshot) {
+    return new Product(snapshot);
+  }
 
-    Money money = Money.brl(price);
-    return new Product(id, name, description, money, stockQuantity,
-        sku, category, status, createdAt, updatedAt);
+  /**
+   * Creates a snapshot of the current product state.
+   *
+   * <p>Used by infrastructure layer to persist domain objects.
+   *
+   * @return ProductSnapshot containing current state
+   */
+  public ProductSnapshot toSnapshot() {
+    return new ProductSnapshot(
+        this.id,
+        this.name,
+        this.description,
+        this.price,
+        this.stockQuantity,
+        this.sku,
+        this.category,
+        this.status,
+        this.createdAt,
+        this.updatedAt);
   }
 
   /**
@@ -164,14 +146,13 @@ public class Product {
    * <p>Domain invariant: stock cannot become negative.
    *
    * @param quantity amount to decrease (must be > 0)
-   * @throws IllegalArgumentException if quantity <= 0
+   * @throws IllegalArgumentException   if quantity <= 0
    * @throws InsufficientStockException if insufficient stock available
    */
   public void decreaseStock(int quantity) {
     if (quantity <= 0) {
       throw new IllegalArgumentException(
-          "Quantity must be greater than 0, but was: " + quantity
-      );
+          "Quantity must be greater than 0, but was: " + quantity);
     }
 
     if (quantity > this.stockQuantity) {
@@ -179,9 +160,7 @@ public class Product {
           String.format(
               "Insufficient stock. Available: %d, Requested: %d",
               this.stockQuantity,
-              quantity
-          )
-      );
+              quantity));
     }
 
     this.stockQuantity -= quantity;
@@ -197,8 +176,7 @@ public class Product {
   public void increaseStock(int quantity) {
     if (quantity <= 0) {
       throw new IllegalArgumentException(
-          "Quantity must be greater than 0, but was: " + quantity
-      );
+          "Quantity must be greater than 0, but was: " + quantity);
     }
 
     this.stockQuantity += quantity;
@@ -210,10 +188,10 @@ public class Product {
    *
    * <p>Note: Cannot update id, sku, or createdAt (immutable).
    *
-   * @param name new product name
+   * @param name        new product name
    * @param description new description
-   * @param price new price
-   * @param category new category
+   * @param price       new price
+   * @param category    new category
    * @throws IllegalArgumentException if validation fails
    */
   public void update(String name, String description, Money price, ProductCategory category) {
@@ -275,8 +253,7 @@ public class Product {
     }
     if (name.length() > 200) {
       throw new IllegalArgumentException(
-          "Name cannot exceed 200 characters, but was: " + name.length()
-      );
+          "Name cannot exceed 200 characters, but was: " + name.length());
     }
   }
 
@@ -290,8 +267,7 @@ public class Product {
   private void validateStockQuantity(int stockQuantity) {
     if (stockQuantity < 0) {
       throw new IllegalArgumentException(
-          "Stock quantity cannot be negative, but was: " + stockQuantity
-      );
+          "Stock quantity cannot be negative, but was: " + stockQuantity);
     }
   }
 
@@ -301,13 +277,11 @@ public class Product {
     }
     if (sku.length() > 50) {
       throw new IllegalArgumentException(
-          "SKU cannot exceed 50 characters, but was: " + sku.length()
-      );
+          "SKU cannot exceed 50 characters, but was: " + sku.length());
     }
     if (!sku.matches("^[a-zA-Z0-9-]+$")) {
       throw new IllegalArgumentException(
-          "SKU must be alphanumeric with optional hyphens, but was: " + sku
-      );
+          "SKU must be alphanumeric with optional hyphens, but was: " + sku);
     }
   }
 

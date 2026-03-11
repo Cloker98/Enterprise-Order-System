@@ -8,14 +8,20 @@ import com.enterprise.product.application.usecase.CreateProductUseCase;
 import com.enterprise.product.application.usecase.DecreaseStockUseCase;
 import com.enterprise.product.application.usecase.DeleteProductUseCase;
 import com.enterprise.product.application.usecase.GetProductUseCase;
+import com.enterprise.product.application.usecase.ListProductsUseCase;
 import com.enterprise.product.application.usecase.UpdateProductUseCase;
+import com.enterprise.product.domain.model.ProductCategory;
 import io.swagger.v3.oas.annotations.Operation;
+import io.swagger.v3.oas.annotations.Parameter;
 import io.swagger.v3.oas.annotations.responses.ApiResponse;
 import io.swagger.v3.oas.annotations.responses.ApiResponses;
 import io.swagger.v3.oas.annotations.tags.Tag;
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
+import org.springframework.data.web.PageableDefault;
 import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.web.bind.annotation.DeleteMapping;
@@ -25,6 +31,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.ResponseStatus;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -35,12 +42,12 @@ import org.springframework.web.bind.annotation.RestController;
  *
  * <p>Endpoints:
  * <ul>
+ *   <li>GET / - List products with pagination and filters</li>
  *   <li>POST / - Create product</li>
  *   <li>GET /{id} - Get product by ID</li>
  *   <li>PUT /{id} - Update product</li>
  *   <li>DELETE /{id} - Delete product (soft delete)</li>
  *   <li>POST /{id}/decrease-stock - Decrease stock</li>
- *   <li>POST /{id}/increase-stock - Increase stock</li>
  * </ul>
  */
 @RestController
@@ -52,9 +59,48 @@ public class ProductController {
 
   private final CreateProductUseCase createProductUseCase;
   private final GetProductUseCase getProductUseCase;
+  private final ListProductsUseCase listProductsUseCase;
   private final UpdateProductUseCase updateProductUseCase;
   private final DeleteProductUseCase deleteProductUseCase;
   private final DecreaseStockUseCase decreaseStockUseCase;
+
+  /**
+   * Lists products with pagination and optional filters.
+   *
+   * @param category optional category filter
+   * @param name optional name filter (partial match)
+   * @param pageable pagination parameters (page, size, sort)
+   * @return 200 OK with paginated products
+   */
+  @GetMapping
+  @Operation(
+      summary = "List products with pagination and filters",
+      description = "Retrieves a paginated list of products with optional category and name filters"
+  )
+  @ApiResponses(value = {
+      @ApiResponse(responseCode = "200", description = "Products retrieved successfully"),
+      @ApiResponse(responseCode = "400", description = "Invalid pagination parameters")
+  })
+  public ResponseEntity<Page<ProductResponse>> list(
+      @Parameter(description = "Filter by product category")
+      @RequestParam(required = false) ProductCategory category,
+      
+      @Parameter(description = "Filter by product name (partial match, case-insensitive)")
+      @RequestParam(required = false) String name,
+      
+      @Parameter(description = "Pagination parameters (page, size, sort)")
+      @PageableDefault(size = 20, sort = "name") Pageable pageable) {
+
+    log.debug("REST: Listing products with filters: category={}, name={}, page={}, size={}",
+        category, name, pageable.getPageNumber(), pageable.getPageSize());
+
+    Page<ProductResponse> response = listProductsUseCase.execute(category, name, pageable);
+
+    log.debug("REST: Listed {} products (total: {})",
+        response.getNumberOfElements(), response.getTotalElements());
+
+    return ResponseEntity.ok(response);
+  }
 
   /**
    * Creates a new product.

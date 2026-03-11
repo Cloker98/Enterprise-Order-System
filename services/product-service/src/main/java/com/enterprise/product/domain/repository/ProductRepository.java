@@ -1,8 +1,11 @@
 package com.enterprise.product.domain.repository;
 
 import com.enterprise.product.domain.model.Product;
+import com.enterprise.product.domain.model.ProductCategory;
 import com.enterprise.product.domain.model.ProductId;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Repository PORT (interface) for Product aggregate.
@@ -53,4 +56,27 @@ public interface ProductRepository {
    * @return true if exists, false otherwise
    */
   boolean existsBySku(String sku);
+
+  /**
+   * Finds all products with pagination.
+   *
+   * @param pageable pagination information (page, size, sort)
+   * @return page of products
+   */
+  Page<Product> findAll(Pageable pageable);
+
+  /**
+   * Finds products by filters with pagination.
+   *
+   * <p>Filters are applied with AND logic:
+   * - If category is provided, filter by exact category match
+   * - If name is provided, filter by partial name match (case-insensitive)
+   * - Both filters can be combined
+   *
+   * @param category optional category filter (exact match)
+   * @param name optional name filter (partial match, case-insensitive)
+   * @param pageable pagination information (page, size, sort)
+   * @return page of products matching the filters
+   */
+  Page<Product> findByFilters(ProductCategory category, String name, Pageable pageable);
 }

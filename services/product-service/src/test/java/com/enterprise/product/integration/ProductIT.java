@@ -2,6 +2,7 @@ package com.enterprise.product.integration;
 
 import static io.restassured.RestAssured.given;
 import static org.hamcrest.Matchers.equalTo;
+import static org.hamcrest.Matchers.hasSize;
 import static org.hamcrest.Matchers.notNullValue;
 
 import com.enterprise.product.application.dto.request.CreateProductRequest;
@@ -31,6 +32,142 @@ class ProductIT extends AbstractIntegrationTest {
     RestAssured.port = port;
     RestAssured.baseURI = "http://localhost";
     RestAssured.basePath = "/api/v1/products";
+  }
+
+  @Test
+  @DisplayName("Should list products with pagination")
+  void shouldListProducts_WithPagination() {
+    // Given - Create multiple products
+    createTestProduct("Notebook Dell", "NB-DELL-001", ProductCategory.ELECTRONICS, "3500.00");
+    createTestProduct("Mouse Logitech", "MS-LOG-001", ProductCategory.ELECTRONICS, "150.00");
+    createTestProduct("Camiseta Nike", "CM-NIKE-001", ProductCategory.CLOTHING, "80.00");
+
+    // When/Then - List all products (first page)
+    given()
+        .queryParam("page", 0)
+        .queryParam("size", 10)
+        .when()
+        .get()
+        .then()
+        .statusCode(200)
+        .body("content", hasSize(3))
+        .body("totalElements", equalTo(3))
+        .body("totalPages", equalTo(1))
+        .body("first", equalTo(true))
+        .body("last", equalTo(true))
+        .body("content[0].name", notNullValue())
+        .body("content[1].name", notNullValue())
+        .body("content[2].name", notNullValue());
+  }
+
+  @Test
+  @DisplayName("Should filter products by category")
+  void shouldFilterProducts_ByCategory() {
+    // Given - Create products in different categories
+    createTestProduct("Notebook Dell", "NB-DELL-002", ProductCategory.ELECTRONICS, "3500.00");
+    createTestProduct("Mouse Logitech", "MS-LOG-002", ProductCategory.ELECTRONICS, "150.00");
+    createTestProduct("Camiseta Nike", "CM-NIKE-002", ProductCategory.CLOTHING, "80.00");
+
+    // When/Then - Filter by ELECTRONICS category
+    given()
+        .queryParam("category", "ELECTRONICS")
+        .when()
+        .get()
+        .then()
+        .statusCode(200)
+        .body("content", hasSize(2))
+        .body("totalElements", equalTo(2))
+        .body("content[0].category", equalTo("ELECTRONICS"))
+        .body("content[1].category", equalTo("ELECTRONICS"));
+
+    // And - Filter by CLOTHING category
+    given()
+        .queryParam("category", "CLOTHING")
+        .when()
+        .get()
+        .then()
+        .statusCode(200)
+        .body("content", hasSize(1))
+        .body("totalElements", equalTo(1))
+        .body("content[0].category", equalTo("CLOTHING"));
+  }
+
+  @Test
+  @DisplayName("Should filter products by name")
+  void shouldFilterProducts_ByName() {
+    // Given - Create products with different names
+    createTestProduct("Notebook Dell Inspiron", "NB-DELL-003", ProductCategory.ELECTRONICS, "3500.00");
+    createTestProduct("Notebook Lenovo", "NB-LEN-001", ProductCategory.ELECTRONICS, "2800.00");
+    createTestProduct("Mouse Dell", "MS-DELL-001", ProductCategory.ELECTRONICS, "120.00");
+
+    // When/Then - Search by "notebook" (case-insensitive)
+    given()
+        .queryParam("name", "notebook")
+        .when()
+        .get()
+        .then()
+        .statusCode(200)
+        .body("content", hasSize(2))
+        .body("totalElements", equalTo(2));
+
+    // And - Search by "dell" (case-insensitive)
+    given()
+        .queryParam("name", "dell")
+        .when()
+        .get()
+        .then()
+        .statusCode(200)
+        .body("content", hasSize(2))
+        .body("totalElements", equalTo(2));
+  }
+
+  @Test
+  @DisplayName("Should combine category and name filters")
+  void shouldCombineFilters_CategoryAndName() {
+    // Given - Create products
+    createTestProduct("Notebook Dell", "NB-DELL-004", ProductCategory.ELECTRONICS, "3500.00");
+    createTestProduct("Mouse Dell", "MS-DELL-002", ProductCategory.ELECTRONICS, "120.00");
+    createTestProduct("Camiseta Dell", "CM-DELL-001", ProductCategory.CLOTHING, "60.00");
+
+    // When/Then - Filter by ELECTRONICS category AND "dell" name
+    given()
+        .queryParam("category", "ELECTRONICS")
+        .queryParam("name", "dell")
+        .when()
+        .get()
+        .then()
+        .statusCode(200)
+        .body("content", hasSize(2))
+        .body("totalElements", equalTo(2))
+        .body("content[0].category", equalTo("ELECTRONICS"))
+        .body("content[1].category", equalTo("ELECTRONICS"));
+  }
+
+  @Test
+  @DisplayName("Should return empty list when no products match filters")
+  void shouldReturnEmptyList_WhenNoMatches() {
+    // Given - Create some products
+    createTestProduct("Notebook Dell", "NB-DELL-005", ProductCategory.ELECTRONICS, "3500.00");
+
+    // When/Then - Search for non-existent category
+    given()
+        .queryParam("category", "BOOKS")
+        .when()
+        .get()
+        .then()
+        .statusCode(200)
+        .body("content", hasSize(0))
+        .body("totalElements", equalTo(0));
+
+    // And - Search for non-existent name
+    given()
+        .queryParam("name", "nonexistent")
+        .when()
+        .get()
+        .then()
+        .statusCode(200)
+        .body("content", hasSize(0))
+        .body("totalElements", equalTo(0));
   }
 
   @Test
@@ -321,5 +458,26 @@ class ProductIT extends AbstractIntegrationTest {
         .body("status", equalTo(400))
         .body("error", equalTo("Bad Request"))
         .body("message", equalTo("Invalid UUID format: invalid-uuid-format"));
+  }
+
+  /**
+   * Helper method to create test products.
+   */
+  private void createTestProduct(String name, String sku, ProductCategory category, String price) {
+    CreateProductRequest request = new CreateProductRequest(
+        name,
+        "Test description for " + name,
+        new BigDecimal(price),
+        10,
+        sku,
+        category
+    );
+
+    given()
+        .contentType(ContentType.JSON)
+        .body(request)
+        .post()
+        .then()
+        .statusCode(201);
   }
 }

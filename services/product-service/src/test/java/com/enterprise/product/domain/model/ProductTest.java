@@ -1,5 +1,6 @@
 package com.enterprise.product.domain.model;
 
+import static org.assertj.core.api.Assertions.assertThatThrownBy;
 import static org.junit.jupiter.api.Assertions.assertEquals;
 import static org.junit.jupiter.api.Assertions.assertNotNull;
 import static org.junit.jupiter.api.Assertions.assertThrows;
@@ -28,8 +29,7 @@ class ProductTest {
         new BigDecimal("3500.00"),
         10,
         "NB-DELL-001",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     // Then
     assertNotNull(product);
@@ -48,108 +48,53 @@ class ProductTest {
   @Test
   @DisplayName("create_WhenNullName_ShouldThrowException")
   void create_WhenNullName_ShouldThrowException() {
-    assertThrows(IllegalArgumentException.class, () ->
-        Product.create(
-            null, // Null name
-            "Description",
-            new BigDecimal("100.00"),
-            10,
-            "SKU-001",
-            ProductCategory.ELECTRONICS
-        )
-    );
+    // Extract lambda to avoid S5778 - multiple exception throwing
+    assertThatThrownBy(this::createProductWithNullName)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   @DisplayName("create_WhenBlankName_ShouldThrowException")
   void create_WhenBlankName_ShouldThrowException() {
-    assertThrows(IllegalArgumentException.class, () ->
-        Product.create(
-            "   ", // Blank name
-            "Description",
-            new BigDecimal("100.00"),
-            10,
-            "SKU-002",
-            ProductCategory.ELECTRONICS
-        )
-    );
+    // Extract lambda to avoid S5778 - multiple exception throwing
+    assertThatThrownBy(this::createProductWithBlankName)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   @DisplayName("create_WhenNameTooLong_ShouldThrowException")
   void create_WhenNameTooLong_ShouldThrowException() {
-    String longName = "A".repeat(201); // Max is 200
-
-    assertThrows(IllegalArgumentException.class, () ->
-        Product.create(
-            longName,
-            "Description",
-            new BigDecimal("100.00"),
-            10,
-            "SKU-003",
-            ProductCategory.ELECTRONICS
-        )
-    );
+    // Extract lambda to avoid S5778 - multiple exception throwing
+    assertThatThrownBy(this::createProductWithLongName)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   @DisplayName("create_WhenNegativePrice_ShouldThrowException")
   void create_WhenNegativePrice_ShouldThrowException() {
-    assertThrows(IllegalArgumentException.class, () ->
-        Product.create(
-            "Product",
-            "Description",
-            new BigDecimal("-10.00"), // Negative price
-            10,
-            "SKU-004",
-            ProductCategory.ELECTRONICS
-        )
-    );
+    assertThatThrownBy(this::createProductWithNegativePrice)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   @DisplayName("create_WhenZeroPrice_ShouldThrowException")
   void create_WhenZeroPrice_ShouldThrowException() {
-    assertThrows(IllegalArgumentException.class, () ->
-        Product.create(
-            "Product",
-            "Description",
-            BigDecimal.ZERO, // Zero price
-            10,
-            "SKU-005",
-            ProductCategory.ELECTRONICS
-        )
-    );
+    assertThatThrownBy(this::createProductWithZeroPrice)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   @DisplayName("create_WhenNegativeStock_ShouldThrowException")
   void create_WhenNegativeStock_ShouldThrowException() {
-    assertThrows(IllegalArgumentException.class, () ->
-        Product.create(
-            "Product",
-            "Description",
-            new BigDecimal("100.00"),
-            -5, // Negative stock
-            "SKU-006",
-            ProductCategory.ELECTRONICS
-        )
-    );
+    assertThatThrownBy(this::createProductWithNegativeStock)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
   @DisplayName("create_WhenNullSku_ShouldThrowException")
   void create_WhenNullSku_ShouldThrowException() {
-    assertThrows(IllegalArgumentException.class, () ->
-        Product.create(
-            "Product",
-            "Description",
-            new BigDecimal("100.00"),
-            10,
-            null, // Null SKU
-            ProductCategory.ELECTRONICS
-        )
-    );
+    assertThatThrownBy(this::createProductWithNullSKU)
+        .isInstanceOf(IllegalArgumentException.class);
   }
 
   @Test
@@ -162,8 +107,7 @@ class ProductTest {
         new BigDecimal("100.00"),
         50,
         "SKU-STOCK-001",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     // When
     product.decreaseStock(10);
@@ -182,14 +126,12 @@ class ProductTest {
         new BigDecimal("100.00"),
         5, // Only 5 units
         "SKU-STOCK-002",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     // When/Then - Trying to decrease 10 when only 5 available
     InsufficientStockException exception = assertThrows(
         InsufficientStockException.class,
-        () -> product.decreaseStock(10)
-    );
+        () -> product.decreaseStock(10));
 
     assertEquals("Insufficient stock. Available: 5, Requested: 10", exception.getMessage());
   }
@@ -204,8 +146,7 @@ class ProductTest {
         new BigDecimal("100.00"),
         50,
         "SKU-STOCK-003",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     // When/Then
     assertThrows(IllegalArgumentException.class, () -> product.decreaseStock(0));
@@ -221,8 +162,7 @@ class ProductTest {
         new BigDecimal("100.00"),
         50,
         "SKU-STOCK-004",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     // When/Then
     assertThrows(IllegalArgumentException.class, () -> product.decreaseStock(-5));
@@ -238,8 +178,7 @@ class ProductTest {
         new BigDecimal("100.00"),
         20,
         "SKU-STOCK-005",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     // When
     product.increaseStock(10);
@@ -258,8 +197,7 @@ class ProductTest {
         new BigDecimal("100.00"),
         20,
         "SKU-STOCK-006",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     // When/Then
     assertThrows(IllegalArgumentException.class, () -> product.increaseStock(0));
@@ -275,16 +213,14 @@ class ProductTest {
         new BigDecimal("100.00"),
         10,
         "SKU-UPDATE-001",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     // When
     product.update(
         "Updated Name",
         "Updated Description",
         Money.brl(new BigDecimal("200.00")),
-        ProductCategory.BOOKS
-    );
+        ProductCategory.BOOKS);
 
     // Then
     assertEquals("Updated Name", product.getName());
@@ -305,8 +241,7 @@ class ProductTest {
         new BigDecimal("100.00"),
         10,
         "SKU-STATUS-001",
-        ProductCategory.ELECTRONICS
-    );
+        ProductCategory.ELECTRONICS);
 
     assertEquals(ProductStatus.ACTIVE, product.getStatus());
 
@@ -325,19 +260,20 @@ class ProductTest {
     LocalDateTime createdAt = LocalDateTime.now().minusDays(1);
     LocalDateTime updatedAt = LocalDateTime.now();
 
-    // When
-    Product product = Product.reconstitute(
+    ProductSnapshot snapshot = new ProductSnapshot(
         id,
         "Reconstituted Product",
         "Description",
-        new BigDecimal("500.00"),
+        Money.brl(new BigDecimal("500.00")), // Using Money instead of BigDecimal
         25,
         "SKU-RECON-001",
         ProductCategory.ELECTRONICS,
         ProductStatus.INACTIVE,
         createdAt,
-        updatedAt
-    );
+        updatedAt);
+
+    // When
+    Product product = Product.reconstitute(snapshot);
 
     // Then
     assertNotNull(product);
@@ -350,5 +286,107 @@ class ProductTest {
     assertEquals(ProductStatus.INACTIVE, product.getStatus());
     assertEquals(createdAt, product.getCreatedAt());
     assertEquals(updatedAt, product.getUpdatedAt());
+  }
+
+  @Test
+  @DisplayName("toSnapshot_ShouldCreateSnapshotWithCurrentState")
+  void toSnapshot_ShouldCreateSnapshotWithCurrentState() {
+    // Given
+    Product product = Product.create(
+        "Test Product",
+        "Test Description",
+        new BigDecimal("150.00"),
+        30,
+        "SKU-SNAPSHOT-001",
+        ProductCategory.BOOKS);
+
+    // When
+    ProductSnapshot snapshot = product.toSnapshot();
+
+    // Then
+    assertNotNull(snapshot);
+    assertEquals(product.getId(), snapshot.id());
+    assertEquals(product.getName(), snapshot.name());
+    assertEquals(product.getDescription(), snapshot.description());
+    assertEquals(product.getPrice(), snapshot.price());
+    assertEquals(product.getStockQuantity(), snapshot.stockQuantity());
+    assertEquals(product.getSku(), snapshot.sku());
+    assertEquals(product.getCategory(), snapshot.category());
+    assertEquals(product.getStatus(), snapshot.status());
+    assertEquals(product.getCreatedAt(), snapshot.createdAt());
+    assertEquals(product.getUpdatedAt(), snapshot.updatedAt());
+  }
+
+  // Helper methods to avoid S5778 code smell (multiple exception throwing in lambdas)
+
+  private Product createProductWithNullName() {
+    return Product.create(
+        null, // Null name
+        "Description",
+        new BigDecimal("100.00"),
+        10,
+        "SKU-001",
+        ProductCategory.ELECTRONICS);
+  }
+
+  private Product createProductWithBlankName() {
+    return Product.create(
+        "   ", // Blank name
+        "Description",
+        new BigDecimal("100.00"),
+        10,
+        "SKU-002",
+        ProductCategory.ELECTRONICS);
+  }
+
+  private Product createProductWithLongName() {
+    String longName = "A".repeat(201); // Max is 200
+    return Product.create(
+        longName,
+        "Description",
+        new BigDecimal("100.00"),
+        10,
+        "SKU-003",
+        ProductCategory.ELECTRONICS);
+  }
+
+  private Product createProductWithNegativePrice(){
+    return Product.create(
+      "Product",
+      "Description",
+      new BigDecimal("-10.00"), // Negative price
+      10,
+      "SKU-004",
+      ProductCategory.ELECTRONICS);
+  }
+
+  private Product createProductWithZeroPrice(){
+    return Product.create(
+      "Product",
+      "Description",
+      BigDecimal.ZERO, // Zero price
+      10,
+      "SKU-005",
+      ProductCategory.ELECTRONICS);
+  }
+
+  private Product createProductWithNegativeStock(){
+    return Product.create(
+      "Product",
+      "Description",
+      new BigDecimal("100.00"),
+      -5, // Negative stock
+      "SKU-006",
+      ProductCategory.ELECTRONICS);
+  }
+
+  private Product createProductWithNullSKU(){
+    return Product.create(
+      "Product",
+      "Description",
+      new BigDecimal("100.00"),
+      10,
+      null, // Null SKU
+      ProductCategory.ELECTRONICS);
   }
 }

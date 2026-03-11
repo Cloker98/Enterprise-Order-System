@@ -1,6 +1,7 @@
 package com.enterprise.product.infrastructure.persistence.repository;
 
 import com.enterprise.product.domain.model.Product;
+import com.enterprise.product.domain.model.ProductCategory;
 import com.enterprise.product.domain.model.ProductId;
 import com.enterprise.product.domain.repository.ProductRepository;
 import com.enterprise.product.infrastructure.cache.ProductCacheService;
@@ -9,6 +10,8 @@ import com.enterprise.product.infrastructure.persistence.mapper.ProductJpaMapper
 import java.util.Optional;
 import lombok.RequiredArgsConstructor;
 import lombok.extern.slf4j.Slf4j;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Repository;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -22,6 +25,7 @@ import org.springframework.transaction.annotation.Transactional;
  *   <li>findById: Check cache first, fallback to DB, cache result</li>
  *   <li>save: Invalidate cache after save</li>
  *   <li>delete: Invalidate cache after delete</li>
+ *   <li>findAll/findByFilters: No cache (pagination results change frequently)</li>
  * </ul>
  */
 @Repository
@@ -107,5 +111,38 @@ public class ProductRepositoryImpl implements ProductRepository {
   public boolean existsBySku(String sku) {
     log.debug("Checking if SKU exists: {}", sku);
     return jpaRepository.existsBySku(sku);
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<Product> findAll(Pageable pageable) {
+    log.debug("Finding all products with pagination: page={}, size={}, sort={}",
+        pageable.getPageNumber(), pageable.getPageSize(), pageable.getSort());
+
+    Page<ProductJpaEntity> entities = jpaRepository.findAll(pageable);
+    Page<Product> products = entities.map(jpaMapper::toDomain);
+
+    log.debug("Found {} products (total: {})", 
+        products.getNumberOfElements(), products.getTotalElements());
+
+    return products;
+  }
+
+  @Override
+  @Transactional(readOnly = true)
+  public Page<Product> findByFilters(ProductCategory category, String name, Pageable pageable) {
+    log.debug("Finding products by filters: category={}, name={}, page={}, size={}",
+        category, name, pageable.getPageNumber(), pageable.getPageSize());
+
+    // Convert domain enum to string for JPA query
+    String categoryStr = category != null ? category.name() : null;
+
+    Page<ProductJpaEntity> entities = jpaRepository.findByFilters(categoryStr, name, pageable);
+    Page<Product> products = entities.map(jpaMapper::toDomain);
+
+    log.debug("Found {} products with filters (total: {})", 
+        products.getNumberOfElements(), products.getTotalElements());
+
+    return products;
   }
 }
