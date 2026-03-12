@@ -4,10 +4,8 @@ import com.enterprise.order.application.port.ProductServicePort;
 import com.enterprise.order.application.usecase.CancelOrderUseCase;
 import com.enterprise.order.application.usecase.CreateOrderUseCase;
 import com.enterprise.order.application.usecase.GetOrderUseCase;
-import com.enterprise.order.application.usecase.ListOrdersUseCase;
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.stream.Collectors;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.http.HttpStatus;
@@ -48,7 +46,7 @@ public class OrderExceptionHandler {
         .getFieldErrors()
         .stream()
         .map(this::formatFieldError)
-        .collect(Collectors.toList());
+        .toList();
     
     ErrorResponse errorResponse = ErrorResponse.builder()
         .timestamp(LocalDateTime.now())
@@ -102,7 +100,7 @@ public class OrderExceptionHandler {
     
     log.debug("Order not found: {}", ex.getMessage());
     
-    ErrorResponse errorResponse = ErrorResponse.builder()
+    ErrorResponse.builder()
         .timestamp(LocalDateTime.now())
         .status(HttpStatus.NOT_FOUND.value())
         .error("Order Not Found")
@@ -126,7 +124,7 @@ public class OrderExceptionHandler {
     
     log.debug("Product not found: {}", ex.getMessage());
     
-    ErrorResponse errorResponse = ErrorResponse.builder()
+    ErrorResponse.builder()
         .timestamp(LocalDateTime.now())
         .status(HttpStatus.NOT_FOUND.value())
         .error("Product Not Found")
