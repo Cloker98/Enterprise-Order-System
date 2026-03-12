@@ -7,6 +7,7 @@ import com.enterprise.order.domain.model.Order;
 import com.enterprise.order.domain.model.OrderId;
 import com.enterprise.order.domain.repository.OrderRepository;
 import java.util.List;
+import java.util.Objects;
 import org.slf4j.Logger;
 import org.slf4j.LoggerFactory;
 import org.springframework.stereotype.Service;
@@ -82,8 +83,10 @@ public class CancelOrderUseCase {
       // Step 4: Publish cancellation event
       publishOrderCancelledEvent(savedOrder);
 
+    } catch (StockCompensationException | EventPublishingException e) {
+      // Rethrow specific exceptions without additional logging to avoid duplication
+      throw e;
     } catch (Exception e) {
-      log.error("Failed to cancel order: {}", request.orderId(), e);
       throw new OrderCancellationException(
           "Failed to cancel order: " + request.orderId() + ". Reason: " + e.getMessage(), e);
     }
@@ -117,20 +120,16 @@ public class CancelOrderUseCase {
             return new StockCompensationFailure(item.getProductId().value(), 
                                               item.getQuantity(), e.getMessage());
           } catch (ProductServicePort.ProductServiceUnavailableException e) {
-            log.error("Product service unavailable during stock compensation for product: {}. " 
-                     + "Manual intervention may be required.", item.getProductId(), e);
             throw new StockCompensationException(
                 "Product service unavailable during stock compensation for product: " 
                 + item.getProductId() + ". Manual intervention required.", e);
           } catch (Exception e) {
-            log.error("Unexpected error during stock compensation for product: {}. " 
-                     + "Manual intervention may be required.", item.getProductId(), e);
             throw new StockCompensationException(
                 "Critical failure during stock compensation for product: " + item.getProductId() 
                 + ". This may result in stock inconsistency and requires immediate attention.", e);
           }
         })
-        .filter(failure -> failure != null)
+        .filter(Objects::nonNull)
         .toList();
 
     if (!failures.isEmpty()) {

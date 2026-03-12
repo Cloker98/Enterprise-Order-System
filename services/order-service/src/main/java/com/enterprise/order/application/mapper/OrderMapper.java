@@ -1,6 +1,5 @@
 package com.enterprise.order.application.mapper;
 
-import com.enterprise.order.application.dto.request.CreateOrderRequest;
 import com.enterprise.order.application.dto.response.OrderItemResponse;
 import com.enterprise.order.application.dto.response.OrderResponse;
 import com.enterprise.order.application.dto.response.OrderSummaryResponse;

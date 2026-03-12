@@ -32,6 +32,8 @@ import org.springframework.stereotype.Repository;
 public class OrderRepositoryImpl implements OrderRepository {
 
   private static final Logger log = LoggerFactory.getLogger(OrderRepositoryImpl.class);
+  private static final String CREATED_AT_FIELD = "createdAt";
+  private static final int DEFAULT_PAGE_SIZE = 100;
 
   private final OrderJpaRepository orderJpaRepository;
   private final OrderJpaMapper orderJpaMapper;
@@ -74,8 +76,8 @@ public class OrderRepositoryImpl implements OrderRepository {
   public List<Order> findByCustomerId(CustomerId customerId) {
     log.debug("Finding orders by customer ID: {}", customerId);
     
-    Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
-    Pageable pageable = PageRequest.of(0, 100, sort); // Default limit
+    Sort sort = Sort.by(Sort.Direction.DESC, CREATED_AT_FIELD);
+    Pageable pageable = PageRequest.of(0, DEFAULT_PAGE_SIZE, sort);
     
     return orderJpaRepository.findByCustomerId(customerId.value(), pageable)
         .getContent()
@@ -89,7 +91,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     log.debug("Finding orders by customer ID with pagination: {}, page: {}, size: {}", 
               customerId, page, size);
     
-    Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+    Sort sort = Sort.by(Sort.Direction.DESC, CREATED_AT_FIELD);
     Pageable pageable = PageRequest.of(page, size, sort);
     
     return orderJpaRepository.findByCustomerId(customerId.value(), pageable)
@@ -128,7 +130,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     log.debug("Finding orders by customer ID and status: {}, status: {}, page: {}, size: {}", 
               customerId, status, page, size);
     
-    Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+    Sort sort = Sort.by(Sort.Direction.DESC, CREATED_AT_FIELD);
     Pageable pageable = PageRequest.of(page, size, sort);
     OrderStatusJpa jpaStatus = mapToJpaStatus(status);
     
@@ -146,7 +148,7 @@ public class OrderRepositoryImpl implements OrderRepository {
     log.debug("Finding orders by customer ID and date range: {}, dates: {} to {}, "
               + "page: {}, size: {}", customerId, startDate, endDate, page, size);
     
-    Sort sort = Sort.by(Sort.Direction.DESC, "createdAt");
+    Sort sort = Sort.by(Sort.Direction.DESC, CREATED_AT_FIELD);
     Pageable pageable = PageRequest.of(page, size, sort);
     
     return orderJpaRepository.findByCustomerIdAndCreatedAtBetween(
