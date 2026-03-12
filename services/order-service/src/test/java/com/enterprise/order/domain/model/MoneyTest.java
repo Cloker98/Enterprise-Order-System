@@ -40,32 +40,49 @@ class MoneyTest {
   @Test
   @DisplayName("constructor_WhenNullAmount_ShouldThrowException")
   void constructor_WhenNullAmount_ShouldThrowException() {
+    // Given
+    Currency brlCurrency = Currency.getInstance("BRL");
+    
+    // When/Then
     assertThrows(IllegalArgumentException.class, () ->
-        new Money(null, Currency.getInstance("BRL"))
+        new Money(null, brlCurrency)
     );
   }
 
   @Test
   @DisplayName("constructor_WhenZeroAmount_ShouldThrowException")
   void constructor_WhenZeroAmount_ShouldThrowException() {
+    // Given
+    Currency brlCurrency = Currency.getInstance("BRL");
+    
+    // When/Then
     assertThrows(IllegalArgumentException.class, () ->
-        new Money(BigDecimal.ZERO, Currency.getInstance("BRL"))
+        new Money(BigDecimal.ZERO, brlCurrency)
     );
   }
 
   @Test
   @DisplayName("constructor_WhenNegativeAmount_ShouldThrowException")
   void constructor_WhenNegativeAmount_ShouldThrowException() {
+    // Given
+    BigDecimal negativeAmount = new BigDecimal("-10.00");
+    Currency brlCurrency = Currency.getInstance("BRL");
+    
+    // When/Then
     assertThrows(IllegalArgumentException.class, () ->
-        new Money(new BigDecimal("-10.00"), Currency.getInstance("BRL"))
+        new Money(negativeAmount, brlCurrency)
     );
   }
 
   @Test
   @DisplayName("constructor_WhenNullCurrency_ShouldThrowException")
   void constructor_WhenNullCurrency_ShouldThrowException() {
+    // Given
+    BigDecimal amount = new BigDecimal("100.00");
+    
+    // When/Then
     assertThrows(IllegalArgumentException.class, () ->
-        new Money(new BigDecimal("100.00"), null)
+        new Money(amount, null)
     );
   }
 
@@ -88,8 +105,12 @@ class MoneyTest {
   @DisplayName("add_WhenDifferentCurrencies_ShouldThrowException")
   void add_WhenDifferentCurrencies_ShouldThrowException() {
     // Given
-    Money brl = new Money(new BigDecimal("100.00"), Currency.getInstance("BRL"));
-    Money usd = new Money(new BigDecimal("50.00"), Currency.getInstance("USD"));
+    BigDecimal amount1 = new BigDecimal("100.00");
+    BigDecimal amount2 = new BigDecimal("50.00");
+    Currency brlCurrency = Currency.getInstance("BRL");
+    Currency usdCurrency = Currency.getInstance("USD");
+    Money brl = new Money(amount1, brlCurrency);
+    Money usd = new Money(amount2, usdCurrency);
 
     // When/Then
     assertThrows(IllegalArgumentException.class, () -> brl.add(usd));
@@ -124,8 +145,12 @@ class MoneyTest {
   @DisplayName("subtract_WhenDifferentCurrencies_ShouldThrowException")
   void subtract_WhenDifferentCurrencies_ShouldThrowException() {
     // Given
-    Money brl = new Money(new BigDecimal("100.00"), Currency.getInstance("BRL"));
-    Money usd = new Money(new BigDecimal("50.00"), Currency.getInstance("USD"));
+    BigDecimal amount1 = new BigDecimal("100.00");
+    BigDecimal amount2 = new BigDecimal("50.00");
+    Currency brlCurrency = Currency.getInstance("BRL");
+    Currency usdCurrency = Currency.getInstance("USD");
+    Money brl = new Money(amount1, brlCurrency);
+    Money usd = new Money(amount2, usdCurrency);
 
     // When/Then
     assertThrows(IllegalArgumentException.class, () -> brl.subtract(usd));

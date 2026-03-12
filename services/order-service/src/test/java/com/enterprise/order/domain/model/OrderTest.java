@@ -22,9 +22,9 @@ class OrderTest {
         CustomerId customerId = CustomerId.from("customer-123");
         ProductId productId = ProductId.from("product-456");
         Money unitPrice = Money.brl(999.99);
-        List<OrderItem> items = List.of(
-            OrderItem.create(productId, "iPhone 15", 2, unitPrice)
-        );
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 2, unitPrice);
+        List<OrderItem> items = List.of(orderItem);
+        Money expectedTotal = Money.brl(1999.98);
         
         // When
         Order order = Order.create(customerId, items);
@@ -35,7 +35,7 @@ class OrderTest {
         assertThat(order.getCustomerId()).isEqualTo(customerId);
         assertThat(order.getItems()).hasSize(1);
         assertThat(order.getStatus()).isEqualTo(OrderStatus.PENDING);
-        assertThat(order.getTotalAmount()).isEqualTo(Money.brl(1999.98));
+        assertThat(order.getTotalAmount()).isEqualTo(expectedTotal);
         assertThat(order.getCreatedAt()).isNotNull();
         assertThat(order.getUpdatedAt()).isNotNull();
         assertThat(order.getCancellationReason()).isNull();
@@ -46,9 +46,8 @@ class OrderTest {
         // Given
         ProductId productId = ProductId.from("product-456");
         Money unitPrice = Money.brl(999.99);
-        List<OrderItem> items = List.of(
-            OrderItem.create(productId, "iPhone 15", 2, unitPrice)
-        );
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 2, unitPrice);
+        List<OrderItem> items = List.of(orderItem);
         
         // When & Then
         assertThatThrownBy(() -> Order.create(null, items))
@@ -71,9 +70,10 @@ class OrderTest {
     void create_WhenEmptyItems_ShouldThrowException() {
         // Given
         CustomerId customerId = CustomerId.from("customer-123");
+        List<OrderItem> emptyItems = List.of();
         
         // When & Then
-        assertThatThrownBy(() -> Order.create(customerId, List.of()))
+        assertThatThrownBy(() -> Order.create(customerId, emptyItems))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Items cannot be null or empty");
     }
@@ -86,16 +86,16 @@ class OrderTest {
         ProductId productId2 = ProductId.from("product-2");
         Money unitPrice1 = Money.brl(999.99);
         Money unitPrice2 = Money.brl(299.99);
-        List<OrderItem> items = List.of(
-            OrderItem.create(productId1, "iPhone 15", 2, unitPrice1),
-            OrderItem.create(productId2, "AirPods", 1, unitPrice2)
-        );
+        OrderItem orderItem1 = OrderItem.create(productId1, "iPhone 15", 2, unitPrice1);
+        OrderItem orderItem2 = OrderItem.create(productId2, "AirPods", 1, unitPrice2);
+        List<OrderItem> items = List.of(orderItem1, orderItem2);
+        Money expectedTotal = Money.brl(2299.97);
         
         // When
         Order order = Order.create(customerId, items);
         
         // Then
-        assertThat(order.getTotalAmount()).isEqualTo(Money.brl(2299.97));
+        assertThat(order.getTotalAmount()).isEqualTo(expectedTotal);
     }
 
     @Test
@@ -225,19 +225,19 @@ class OrderTest {
         Money unitPrice1 = Money.brl(999.99);
         Money unitPrice2 = Money.brl(299.99);
         Money unitPrice3 = Money.brl(49.99);
-        List<OrderItem> items = List.of(
-            OrderItem.create(productId1, "iPhone 15", 2, unitPrice1),
-            OrderItem.create(productId2, "AirPods", 3, unitPrice2),
-            OrderItem.create(productId3, "Case", 1, unitPrice3)
-        );
+        OrderItem orderItem1 = OrderItem.create(productId1, "iPhone 15", 2, unitPrice1);
+        OrderItem orderItem2 = OrderItem.create(productId2, "AirPods", 3, unitPrice2);
+        OrderItem orderItem3 = OrderItem.create(productId3, "Case", 1, unitPrice3);
+        List<OrderItem> items = List.of(orderItem1, orderItem2, orderItem3);
         Order order = Order.create(customerId, items);
+        Money expectedTotal = Money.brl(2949.94);
         
         // When
         Money total = order.calculateTotal();
         
         // Then
         // (999.99 * 2) + (299.99 * 3) + (49.99 * 1) = 1999.98 + 899.97 + 49.99 = 2949.94
-        assertThat(total).isEqualTo(Money.brl(2949.94));
+        assertThat(total).isEqualTo(expectedTotal);
     }
 
     @Test
@@ -287,13 +287,14 @@ class OrderTest {
         ProductId productId = ProductId.from("product-2");
         Money unitPrice = Money.brl(299.99);
         OrderItem newItem = OrderItem.create(productId, "AirPods", 1, unitPrice);
+        Money expectedTotal = Money.brl(2299.97); // 1999.98 + 299.99
         
         // When
         order.addItem(newItem);
         
         // Then
         assertThat(order.getItems()).hasSize(2);
-        assertThat(order.getTotalAmount()).isEqualTo(Money.brl(2299.97)); // 1999.98 + 299.99
+        assertThat(order.getTotalAmount()).isEqualTo(expectedTotal);
     }
 
     @Test
@@ -329,19 +330,19 @@ class OrderTest {
         ProductId productId2 = ProductId.from("product-789");
         Money unitPrice1 = Money.brl(999.99);
         Money unitPrice2 = Money.brl(299.99);
-        List<OrderItem> items = List.of(
-            OrderItem.create(productId1, "iPhone 15", 2, unitPrice1),
-            OrderItem.create(productId2, "AirPods", 1, unitPrice2)
-        );
+        OrderItem orderItem1 = OrderItem.create(productId1, "iPhone 15", 2, unitPrice1);
+        OrderItem orderItem2 = OrderItem.create(productId2, "AirPods", 1, unitPrice2);
+        List<OrderItem> items = List.of(orderItem1, orderItem2);
         Order order = Order.create(customerId, items);
         ProductId productIdToRemove = ProductId.from("product-456");
+        Money expectedTotal = Money.brl(299.99);
         
         // When
         order.removeItem(productIdToRemove);
         
         // Then
         assertThat(order.getItems()).hasSize(1);
-        assertThat(order.getTotalAmount()).isEqualTo(Money.brl(299.99));
+        assertThat(order.getTotalAmount()).isEqualTo(expectedTotal);
     }
 
     @Test
@@ -375,9 +376,8 @@ class OrderTest {
         CustomerId customerId = CustomerId.from("customer-123");
         ProductId productId = ProductId.from("product-456");
         Money unitPrice = Money.brl(999.99);
-        List<OrderItem> items = List.of(
-            OrderItem.create(productId, "iPhone 15", 2, unitPrice)
-        );
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 2, unitPrice);
+        List<OrderItem> items = List.of(orderItem);
         Money totalAmount = Money.brl(1999.98);
         OrderStatus status = OrderStatus.CONFIRMED;
         String cancellationReason = null;
@@ -426,9 +426,8 @@ class OrderTest {
         CustomerId customerId = CustomerId.from("customer-123");
         ProductId productId = ProductId.from("product-456");
         Money unitPrice = Money.brl(999.99);
-        List<OrderItem> items = List.of(
-            OrderItem.create(productId, "iPhone 15", 2, unitPrice)
-        );
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 2, unitPrice);
+        List<OrderItem> items = List.of(orderItem);
         return Order.create(customerId, items);
     }
 }
