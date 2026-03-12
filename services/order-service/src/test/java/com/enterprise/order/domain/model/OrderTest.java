@@ -20,8 +20,10 @@ class OrderTest {
     void create_WhenValidData_ShouldCreatePendingOrder() {
         // Given
         CustomerId customerId = CustomerId.from("customer-123");
+        ProductId productId = ProductId.from("product-456");
+        Money unitPrice = Money.brl(999.99);
         List<OrderItem> items = List.of(
-            OrderItem.create(ProductId.from("product-456"), "iPhone 15", 2, Money.brl(999.99))
+            OrderItem.create(productId, "iPhone 15", 2, unitPrice)
         );
         
         // When
@@ -42,8 +44,10 @@ class OrderTest {
     @Test
     void create_WhenNullCustomerId_ShouldThrowException() {
         // Given
+        ProductId productId = ProductId.from("product-456");
+        Money unitPrice = Money.brl(999.99);
         List<OrderItem> items = List.of(
-            OrderItem.create(ProductId.from("product-456"), "iPhone 15", 2, Money.brl(999.99))
+            OrderItem.create(productId, "iPhone 15", 2, unitPrice)
         );
         
         // When & Then
@@ -54,16 +58,22 @@ class OrderTest {
 
     @Test
     void create_WhenNullItems_ShouldThrowException() {
+        // Given
+        CustomerId customerId = CustomerId.from("customer-123");
+        
         // When & Then
-        assertThatThrownBy(() -> Order.create(CustomerId.from("customer-123"), null))
+        assertThatThrownBy(() -> Order.create(customerId, null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Items cannot be null or empty");
     }
 
     @Test
     void create_WhenEmptyItems_ShouldThrowException() {
+        // Given
+        CustomerId customerId = CustomerId.from("customer-123");
+        
         // When & Then
-        assertThatThrownBy(() -> Order.create(CustomerId.from("customer-123"), List.of()))
+        assertThatThrownBy(() -> Order.create(customerId, List.of()))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Items cannot be null or empty");
     }
@@ -72,9 +82,13 @@ class OrderTest {
     void create_WhenMultipleItems_ShouldCalculateTotalCorrectly() {
         // Given
         CustomerId customerId = CustomerId.from("customer-123");
+        ProductId productId1 = ProductId.from("product-1");
+        ProductId productId2 = ProductId.from("product-2");
+        Money unitPrice1 = Money.brl(999.99);
+        Money unitPrice2 = Money.brl(299.99);
         List<OrderItem> items = List.of(
-            OrderItem.create(ProductId.from("product-1"), "iPhone 15", 2, Money.brl(999.99)),
-            OrderItem.create(ProductId.from("product-2"), "AirPods", 1, Money.brl(299.99))
+            OrderItem.create(productId1, "iPhone 15", 2, unitPrice1),
+            OrderItem.create(productId2, "AirPods", 1, unitPrice2)
         );
         
         // When
@@ -105,7 +119,7 @@ class OrderTest {
         order.confirm();
         
         // When & Then
-        assertThatThrownBy(() -> order.confirm())
+        assertThatThrownBy(order::confirm)
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Cannot transition from CONFIRMED to CONFIRMED");
     }
@@ -117,7 +131,7 @@ class OrderTest {
         order.cancel("Test cancellation");
         
         // When & Then
-        assertThatThrownBy(() -> order.confirm())
+        assertThatThrownBy(order::confirm)
             .isInstanceOf(IllegalStateException.class)
             .hasMessage("Cannot transition from CANCELLED to CONFIRMED");
     }
@@ -204,12 +218,19 @@ class OrderTest {
     @Test
     void calculateTotal_ShouldSumAllItemTotals() {
         // Given
+        CustomerId customerId = CustomerId.from("customer-123");
+        ProductId productId1 = ProductId.from("product-1");
+        ProductId productId2 = ProductId.from("product-2");
+        ProductId productId3 = ProductId.from("product-3");
+        Money unitPrice1 = Money.brl(999.99);
+        Money unitPrice2 = Money.brl(299.99);
+        Money unitPrice3 = Money.brl(49.99);
         List<OrderItem> items = List.of(
-            OrderItem.create(ProductId.from("product-1"), "iPhone 15", 2, Money.brl(999.99)),
-            OrderItem.create(ProductId.from("product-2"), "AirPods", 3, Money.brl(299.99)),
-            OrderItem.create(ProductId.from("product-3"), "Case", 1, Money.brl(49.99))
+            OrderItem.create(productId1, "iPhone 15", 2, unitPrice1),
+            OrderItem.create(productId2, "AirPods", 3, unitPrice2),
+            OrderItem.create(productId3, "Case", 1, unitPrice3)
         );
-        Order order = Order.create(CustomerId.from("customer-123"), items);
+        Order order = Order.create(customerId, items);
         
         // When
         Money total = order.calculateTotal();
@@ -263,7 +284,9 @@ class OrderTest {
     void addItem_WhenValidItem_ShouldAddSuccessfully() {
         // Given
         Order order = createTestOrder();
-        OrderItem newItem = OrderItem.create(ProductId.from("product-2"), "AirPods", 1, Money.brl(299.99));
+        ProductId productId = ProductId.from("product-2");
+        Money unitPrice = Money.brl(299.99);
+        OrderItem newItem = OrderItem.create(productId, "AirPods", 1, unitPrice);
         
         // When
         order.addItem(newItem);
@@ -288,7 +311,9 @@ class OrderTest {
     void addItem_WhenDuplicateProduct_ShouldThrowException() {
         // Given
         Order order = createTestOrder();
-        OrderItem duplicateItem = OrderItem.create(ProductId.from("product-456"), "iPhone 15 Pro", 1, Money.brl(1199.99));
+        ProductId duplicateProductId = ProductId.from("product-456");
+        Money unitPrice = Money.brl(1199.99);
+        OrderItem duplicateItem = OrderItem.create(duplicateProductId, "iPhone 15 Pro", 1, unitPrice);
         
         // When & Then
         assertThatThrownBy(() -> order.addItem(duplicateItem))
@@ -300,9 +325,13 @@ class OrderTest {
     void removeItem_WhenValidProductId_ShouldRemoveSuccessfully() {
         // Given - Create order with multiple items
         CustomerId customerId = CustomerId.from("customer-123");
+        ProductId productId1 = ProductId.from("product-456");
+        ProductId productId2 = ProductId.from("product-789");
+        Money unitPrice1 = Money.brl(999.99);
+        Money unitPrice2 = Money.brl(299.99);
         List<OrderItem> items = List.of(
-            OrderItem.create(ProductId.from("product-456"), "iPhone 15", 2, Money.brl(999.99)),
-            OrderItem.create(ProductId.from("product-789"), "AirPods", 1, Money.brl(299.99))
+            OrderItem.create(productId1, "iPhone 15", 2, unitPrice1),
+            OrderItem.create(productId2, "AirPods", 1, unitPrice2)
         );
         Order order = Order.create(customerId, items);
         ProductId productIdToRemove = ProductId.from("product-456");
@@ -344,8 +373,10 @@ class OrderTest {
         // Given
         OrderId orderId = OrderId.generate();
         CustomerId customerId = CustomerId.from("customer-123");
+        ProductId productId = ProductId.from("product-456");
+        Money unitPrice = Money.brl(999.99);
         List<OrderItem> items = List.of(
-            OrderItem.create(ProductId.from("product-456"), "iPhone 15", 2, Money.brl(999.99))
+            OrderItem.create(productId, "iPhone 15", 2, unitPrice)
         );
         Money totalAmount = Money.brl(1999.98);
         OrderStatus status = OrderStatus.CONFIRMED;
@@ -393,8 +424,10 @@ class OrderTest {
 
     private Order createTestOrder() {
         CustomerId customerId = CustomerId.from("customer-123");
+        ProductId productId = ProductId.from("product-456");
+        Money unitPrice = Money.brl(999.99);
         List<OrderItem> items = List.of(
-            OrderItem.create(ProductId.from("product-456"), "iPhone 15", 2, Money.brl(999.99))
+            OrderItem.create(productId, "iPhone 15", 2, unitPrice)
         );
         return Order.create(customerId, items);
     }

@@ -91,8 +91,9 @@ class OrderIdTest {
         OrderId orderId2 = OrderId.from(uuid);
         
         // When & Then
-        assertThat(orderId1).isEqualTo(orderId2);
-        assertThat(orderId1.hashCode()).isEqualTo(orderId2.hashCode());
+        assertThat(orderId1)
+            .isEqualTo(orderId2)
+            .hasSameHashCodeAs(orderId2);
     }
 
     @Test
@@ -112,6 +113,6 @@ class OrderIdTest {
         OrderId orderId = OrderId.from(uuid);
         
         // When & Then
-        assertThat(orderId.toString()).isEqualTo(uuid);
+        assertThat(orderId).hasToString(uuid);
     }
 }

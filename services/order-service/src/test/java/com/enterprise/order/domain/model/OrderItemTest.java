@@ -2,8 +2,6 @@ package com.enterprise.order.domain.model;
 
 import org.junit.jupiter.api.Test;
 
-import java.math.BigDecimal;
-
 import static org.assertj.core.api.Assertions.assertThat;
 import static org.assertj.core.api.Assertions.assertThatThrownBy;
 
@@ -37,56 +35,82 @@ class OrderItemTest {
 
     @Test
     void create_WhenNullProductId_ShouldThrowException() {
+        // Given
+        Money unitPrice = Money.brl(999.99);
+        
         // When & Then
-        assertThatThrownBy(() -> OrderItem.create(null, "iPhone 15", 2, Money.brl(999.99)))
+        assertThatThrownBy(() -> OrderItem.create(null, "iPhone 15", 2, unitPrice))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("ProductId cannot be null");
     }
 
     @Test
     void create_WhenNullProductName_ShouldThrowException() {
+        // Given
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        
         // When & Then
-        assertThatThrownBy(() -> OrderItem.create(ProductId.from("product-123"), null, 2, Money.brl(999.99)))
+        assertThatThrownBy(() -> OrderItem.create(productId, null, 2, unitPrice))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Product name cannot be null or empty");
     }
 
     @Test
     void create_WhenEmptyProductName_ShouldThrowException() {
+        // Given
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        
         // When & Then
-        assertThatThrownBy(() -> OrderItem.create(ProductId.from("product-123"), "", 2, Money.brl(999.99)))
+        assertThatThrownBy(() -> OrderItem.create(productId, "", 2, unitPrice))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Product name cannot be null or empty");
     }
 
     @Test
     void create_WhenBlankProductName_ShouldThrowException() {
+        // Given
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        
         // When & Then
-        assertThatThrownBy(() -> OrderItem.create(ProductId.from("product-123"), "   ", 2, Money.brl(999.99)))
+        assertThatThrownBy(() -> OrderItem.create(productId, "   ", 2, unitPrice))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Product name cannot be null or empty");
     }
 
     @Test
     void create_WhenZeroQuantity_ShouldThrowException() {
+        // Given
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        
         // When & Then
-        assertThatThrownBy(() -> OrderItem.create(ProductId.from("product-123"), "iPhone 15", 0, Money.brl(999.99)))
+        assertThatThrownBy(() -> OrderItem.create(productId, "iPhone 15", 0, unitPrice))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Quantity must be greater than 0");
     }
 
     @Test
     void create_WhenNegativeQuantity_ShouldThrowException() {
+        // Given
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        
         // When & Then
-        assertThatThrownBy(() -> OrderItem.create(ProductId.from("product-123"), "iPhone 15", -1, Money.brl(999.99)))
+        assertThatThrownBy(() -> OrderItem.create(productId, "iPhone 15", -1, unitPrice))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Quantity must be greater than 0");
     }
 
     @Test
     void create_WhenNullUnitPrice_ShouldThrowException() {
+        // Given
+        ProductId productId = ProductId.from("product-123");
+        
         // When & Then
-        assertThatThrownBy(() -> OrderItem.create(ProductId.from("product-123"), "iPhone 15", 2, null))
+        assertThatThrownBy(() -> OrderItem.create(productId, "iPhone 15", 2, null))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Unit price cannot be null");
     }
@@ -94,10 +118,12 @@ class OrderItemTest {
     @Test
     void create_WhenProductNameTooLong_ShouldThrowException() {
         // Given
+        ProductId productId = ProductId.from("product-123");
         String tooLongName = "a".repeat(256);
+        Money unitPrice = Money.brl(999.99);
         
         // When & Then
-        assertThatThrownBy(() -> OrderItem.create(ProductId.from("product-123"), tooLongName, 2, Money.brl(999.99)))
+        assertThatThrownBy(() -> OrderItem.create(productId, tooLongName, 2, unitPrice))
             .isInstanceOf(IllegalArgumentException.class)
             .hasMessage("Product name cannot exceed 255 characters");
     }
@@ -105,10 +131,12 @@ class OrderItemTest {
     @Test
     void create_WhenProductNameMaxLength_ShouldCreateOrderItem() {
         // Given
+        ProductId productId = ProductId.from("product-123");
         String maxLengthName = "a".repeat(255);
+        Money unitPrice = Money.brl(100.00);
         
         // When
-        OrderItem orderItem = OrderItem.create(ProductId.from("product-123"), maxLengthName, 1, Money.brl(100.00));
+        OrderItem orderItem = OrderItem.create(productId, maxLengthName, 1, unitPrice);
         
         // Then
         assertThat(orderItem.getProductName()).isEqualTo(maxLengthName);
@@ -117,12 +145,9 @@ class OrderItemTest {
     @Test
     void calculateTotal_ShouldMultiplyQuantityByUnitPrice() {
         // Given
-        OrderItem orderItem = OrderItem.create(
-            ProductId.from("product-123"), 
-            "iPhone 15", 
-            3, 
-            Money.brl(999.99)
-        );
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 3, unitPrice);
         
         // When
         Money total = orderItem.calculateTotal();
@@ -134,13 +159,9 @@ class OrderItemTest {
     @Test
     void calculateTotal_WhenQuantityOne_ShouldReturnUnitPrice() {
         // Given
+        ProductId productId = ProductId.from("product-123");
         Money unitPrice = Money.brl(999.99);
-        OrderItem orderItem = OrderItem.create(
-            ProductId.from("product-123"), 
-            "iPhone 15", 
-            1, 
-            unitPrice
-        );
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 1, unitPrice);
         
         // When
         Money total = orderItem.calculateTotal();
@@ -152,12 +173,9 @@ class OrderItemTest {
     @Test
     void updateQuantity_WhenValidQuantity_ShouldUpdateSuccessfully() {
         // Given
-        OrderItem orderItem = OrderItem.create(
-            ProductId.from("product-123"), 
-            "iPhone 15", 
-            2, 
-            Money.brl(999.99)
-        );
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 2, unitPrice);
         
         // When
         orderItem.updateQuantity(5);
@@ -170,12 +188,9 @@ class OrderItemTest {
     @Test
     void updateQuantity_WhenZeroQuantity_ShouldThrowException() {
         // Given
-        OrderItem orderItem = OrderItem.create(
-            ProductId.from("product-123"), 
-            "iPhone 15", 
-            2, 
-            Money.brl(999.99)
-        );
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 2, unitPrice);
         
         // When & Then
         assertThatThrownBy(() -> orderItem.updateQuantity(0))
@@ -186,12 +201,9 @@ class OrderItemTest {
     @Test
     void updateQuantity_WhenNegativeQuantity_ShouldThrowException() {
         // Given
-        OrderItem orderItem = OrderItem.create(
-            ProductId.from("product-123"), 
-            "iPhone 15", 
-            2, 
-            Money.brl(999.99)
-        );
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 2, unitPrice);
         
         // When & Then
         assertThatThrownBy(() -> orderItem.updateQuantity(-1))
@@ -202,12 +214,9 @@ class OrderItemTest {
     @Test
     void getTotalPrice_ShouldReturnCalculatedTotal() {
         // Given
-        OrderItem orderItem = OrderItem.create(
-            ProductId.from("product-123"), 
-            "iPhone 15", 
-            4, 
-            Money.brl(250.00)
-        );
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(250.00);
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 4, unitPrice);
         
         // When
         Money totalPrice = orderItem.getTotalPrice();
@@ -220,19 +229,25 @@ class OrderItemTest {
     void equals_WhenSameProductId_ShouldReturnTrue() {
         // Given
         ProductId productId = ProductId.from("product-123");
-        OrderItem orderItem1 = OrderItem.create(productId, "iPhone 15", 2, Money.brl(999.99));
-        OrderItem orderItem2 = OrderItem.create(productId, "iPhone 15 Pro", 3, Money.brl(1199.99));
+        Money unitPrice1 = Money.brl(999.99);
+        Money unitPrice2 = Money.brl(1199.99);
+        OrderItem orderItem1 = OrderItem.create(productId, "iPhone 15", 2, unitPrice1);
+        OrderItem orderItem2 = OrderItem.create(productId, "iPhone 15 Pro", 3, unitPrice2);
         
         // When & Then
-        assertThat(orderItem1).isEqualTo(orderItem2);
-        assertThat(orderItem1.hashCode()).isEqualTo(orderItem2.hashCode());
+        assertThat(orderItem1)
+            .isEqualTo(orderItem2)
+            .hasSameHashCodeAs(orderItem2);
     }
 
     @Test
     void equals_WhenDifferentProductId_ShouldReturnFalse() {
         // Given
-        OrderItem orderItem1 = OrderItem.create(ProductId.from("product-123"), "iPhone 15", 2, Money.brl(999.99));
-        OrderItem orderItem2 = OrderItem.create(ProductId.from("product-456"), "iPhone 15", 2, Money.brl(999.99));
+        ProductId productId1 = ProductId.from("product-123");
+        ProductId productId2 = ProductId.from("product-456");
+        Money unitPrice = Money.brl(999.99);
+        OrderItem orderItem1 = OrderItem.create(productId1, "iPhone 15", 2, unitPrice);
+        OrderItem orderItem2 = OrderItem.create(productId2, "iPhone 15", 2, unitPrice);
         
         // When & Then
         assertThat(orderItem1).isNotEqualTo(orderItem2);
@@ -241,20 +256,18 @@ class OrderItemTest {
     @Test
     void toString_ShouldContainRelevantInformation() {
         // Given
-        OrderItem orderItem = OrderItem.create(
-            ProductId.from("product-123"), 
-            "iPhone 15", 
-            2, 
-            Money.brl(999.99)
-        );
+        ProductId productId = ProductId.from("product-123");
+        Money unitPrice = Money.brl(999.99);
+        OrderItem orderItem = OrderItem.create(productId, "iPhone 15", 2, unitPrice);
         
         // When
         String toString = orderItem.toString();
         
         // Then
-        assertThat(toString).contains("product-123");
-        assertThat(toString).contains("iPhone 15");
-        assertThat(toString).contains("2");
-        assertThat(toString).contains("999.99");
+        assertThat(toString)
+            .contains("product-123")
+            .contains("iPhone 15")
+            .contains("2")
+            .contains("999.99");
     }
 }
