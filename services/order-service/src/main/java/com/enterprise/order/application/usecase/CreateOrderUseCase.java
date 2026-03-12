@@ -11,7 +11,6 @@ import com.enterprise.order.domain.model.Order;
 import com.enterprise.order.domain.model.OrderItem;
 import com.enterprise.order.domain.model.ProductId;
 import com.enterprise.order.domain.repository.OrderRepository;
-import java.math.BigDecimal;
 import java.util.ArrayList;
 import java.util.List;
 import org.slf4j.Logger;
@@ -63,6 +62,7 @@ public class CreateOrderUseCase {
    * @throws ProductServicePort.ProductNotFoundException if product is not found
    * @throws ProductServicePort.InsufficientStockException if insufficient stock
    * @throws ProductServicePort.ProductServiceUnavailableException if service is unavailable
+   * @throws OrderCreationException if order creation fails after stock reservation
    */
   public OrderResponse execute(CreateOrderRequest request) {
     log.info("Creating order for customer: {}", request.customerId());
@@ -109,14 +109,17 @@ public class CreateOrderUseCase {
       // Step 4: Convert to response
       return mapToResponse(savedOrder);
 
-    } catch (Exception e) {
-      log.error("Failed to create order for customer: {}. Compensating stock reservations.", 
-                request.customerId(), e);
-      
-      // Compensate stock reservations
+    } catch (ProductServicePort.ProductNotFoundException 
+           | ProductServicePort.InsufficientStockException 
+           | ProductServicePort.ProductServiceUnavailableException e) {
+      // Compensate stock reservations and rethrow original exception
       compensateStockReservations(stockReservations);
-      
       throw e;
+    } catch (Exception e) {
+      // Compensate stock reservations and rethrow with contextual information
+      compensateStockReservations(stockReservations);
+      throw new OrderCreationException("Failed to create order for customer: " 
+                                      + request.customerId(), e);
     }
   }
 
@@ -127,15 +130,39 @@ public class CreateOrderUseCase {
   }
 
   private void compensateStockReservations(List<StockReservation> stockReservations) {
+    int compensationFailures = 0;
+    
     for (StockReservation reservation : stockReservations) {
       try {
         productServicePort.increaseStock(reservation.productId(), reservation.quantity());
-        log.debug("Compensated stock: {} units of product {}", 
+        log.debug("Successfully compensated stock: {} units of product {}", 
                  reservation.quantity(), reservation.productId());
+      } catch (ProductServicePort.ProductNotFoundException e) {
+        compensationFailures++;
+        log.warn("Cannot compensate stock for non-existent product: {}. " 
+                + "This may indicate data inconsistency.", reservation.productId(), e);
+        // Handle: Product was deleted between reservation and compensation
+        // This is logged as warning since it's a recoverable inconsistency
+      } catch (ProductServicePort.ProductServiceUnavailableException e) {
+        compensationFailures++;
+        log.error("Product service unavailable during stock compensation for product: {}. " 
+                 + "Manual intervention may be required.", reservation.productId(), e);
+        // Handle: Service is down, manual intervention needed
+        // This is logged as error since it requires attention
       } catch (Exception e) {
-        log.error("Failed to compensate stock for product: {}", reservation.productId(), e);
-        // Continue with other compensations
+        // Rethrow with contextual information for critical compensation failures
+        throw new StockCompensationException(
+            "Critical failure during stock compensation for product: " + reservation.productId() 
+            + ". This may result in stock inconsistency and requires immediate attention.", e);
       }
+    }
+    
+    if (compensationFailures > 0) {
+      log.warn("Stock compensation completed with {} failures out of {} reservations. " 
+               + "Manual review recommended.", compensationFailures, stockReservations.size());
+    } else {
+      log.info("All stock reservations compensated successfully. Total: {}", 
+               stockReservations.size());
     }
   }
 
@@ -157,10 +184,12 @@ public class CreateOrderUseCase {
       );
 
       eventPublisherPort.publishOrderCreated(event);
-      log.debug("Published OrderCreated event for order: {}", order.getId());
+      log.info("Successfully published OrderCreated event for order: {}", order.getId());
     } catch (Exception e) {
-      log.error("Failed to publish OrderCreated event for order: {}", order.getId(), e);
-      // Don't fail the entire operation for event publishing failures
+      // Rethrow with contextual information for event publishing failures
+      throw new EventPublishingException(
+          "Failed to publish OrderCreated event for order: " + order.getId() 
+          + ". Order was created successfully but downstream systems may not be notified.", e);
     }
   }
 
@@ -192,5 +221,34 @@ public class CreateOrderUseCase {
    * Record to track stock reservations for compensation.
    */
   private record StockReservation(ProductId productId, int quantity) {
+  }
+
+  /**
+   * Exception thrown when order creation fails after stock has been reserved.
+   */
+  public static class OrderCreationException extends RuntimeException {
+    public OrderCreationException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
+
+  /**
+   * Exception thrown when stock compensation fails critically.
+   * This indicates a potential data inconsistency that requires immediate attention.
+   */
+  public static class StockCompensationException extends RuntimeException {
+    public StockCompensationException(String message, Throwable cause) {
+      super(message, cause);
+    }
+  }
+
+  /**
+   * Exception thrown when event publishing fails.
+   * This is typically non-critical as the main operation (order creation) succeeded.
+   */
+  public static class EventPublishingException extends RuntimeException {
+    public EventPublishingException(String message, Throwable cause) {
+      super(message, cause);
+    }
   }
 }

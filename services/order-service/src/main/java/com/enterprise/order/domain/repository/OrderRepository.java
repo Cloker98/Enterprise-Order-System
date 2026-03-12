@@ -7,6 +7,8 @@ import com.enterprise.order.domain.model.OrderStatus;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Optional;
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 
 /**
  * Repository port for Order aggregate.
@@ -41,7 +43,7 @@ public interface OrderRepository {
   List<Order> findByCustomerId(CustomerId customerId);
 
   /**
-   * Finds orders by customer ID with pagination.
+   * Finds orders by customer ID with pagination (legacy method).
    *
    * @param customerId the customer ID
    * @param page the page number (0-based)
@@ -49,6 +51,29 @@ public interface OrderRepository {
    * @return list of orders for the customer
    */
   List<Order> findByCustomerId(CustomerId customerId, int page, int size);
+
+  /**
+   * Finds orders by customer ID with pagination.
+   *
+   * @param customerId the customer ID
+   * @param pageable the pagination information
+   * @return page of orders for the customer
+   */
+  Page<Order> findByCustomerId(CustomerId customerId, Pageable pageable);
+
+  /**
+   * Finds orders by customer ID with filters and pagination.
+   *
+   * @param customerId the customer ID
+   * @param status the order status filter (optional)
+   * @param startDate the start date filter (optional)
+   * @param endDate the end date filter (optional)
+   * @param pageable the pagination information
+   * @return page of orders matching the criteria
+   */
+  Page<Order> findByCustomerIdWithFilters(CustomerId customerId, OrderStatus status,
+                                         LocalDateTime startDate, LocalDateTime endDate,
+                                         Pageable pageable);
 
   /**
    * Finds orders by customer ID and status.

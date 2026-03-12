@@ -1,6 +1,6 @@
 package com.enterprise.order.application.port;
 
-import com.enterprise.order.domain.model.OrderId;
+import java.util.List;
 
 /**
  * Port for event publishing.
@@ -43,7 +43,7 @@ public interface EventPublisherPort {
       String orderId,
       String customerId,
       String totalAmount,
-      java.util.List<OrderItemEvent> items
+      List<OrderItemEvent> items
   ) {
   }
 
@@ -67,13 +67,15 @@ public interface EventPublisherPort {
    * Order cancelled event.
    *
    * @param orderId the order ID
+   * @param customerId the customer ID
    * @param reason the cancellation reason
-   * @param compensationRequired whether compensation is required
+   * @param items the order items for stock compensation
    */
   record OrderCancelledEvent(
       String orderId,
+      String customerId,
       String reason,
-      boolean compensationRequired
+      List<OrderItemEvent> items
   ) {
   }
 

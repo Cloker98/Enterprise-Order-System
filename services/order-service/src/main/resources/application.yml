@@ -1,0 +1,281 @@
+spring:
+  application:
+    name: order-service
+  
+  profiles:
+    active: dev
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order_db
+    username: order_user
+    password: order_pass
+    driver-class-name: org.postgresql.Driver
+    hikari:
+      maximum-pool-size: 20
+      minimum-idle: 5
+      idle-timeout: 300000
+      connection-timeout: 20000
+      leak-detection-threshold: 60000
+  
+  jpa:
+    hibernate:
+      ddl-auto: validate
+    show-sql: false
+    properties:
+      hibernate:
+        dialect: org.hibernate.dialect.PostgreSQLDialect
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+        order_inserts: true
+        order_updates: true
+    open-in-view: false
+  
+  flyway:
+    enabled: true
+    locations: classpath:db/migration
+    baseline-on-migrate: true
+    validate-on-migrate: true
+  
+  data:
+    redis:
+      host: localhost
+      port: 6379
+      timeout: 2000ms
+      lettuce:
+        pool:
+          max-active: 8
+          max-idle: 8
+          min-idle: 0
+  
+  cache:
+    type: redis
+    redis:
+      time-to-live: 300000 # 5 minutes
+      cache-null-values: false
+  
+  rabbitmq:
+    host: localhost
+    port: 5672
+    username: guest
+    password: guest
+    virtual-host: /
+    connection-timeout: 60000
+    listener:
+      simple:
+        retry:
+          enabled: true
+          initial-interval: 1000
+          max-attempts: 3
+          max-interval: 10000
+          multiplier: 2
+        default-requeue-rejected: false
+        acknowledge-mode: auto
+        concurrency: 1
+        max-concurrency: 5
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: http://localhost:8080/auth/realms/enterprise
+          jwk-set-uri: http://localhost:8080/auth/realms/enterprise/protocol/openid-connect/certs
+
+server:
+  port: 8082
+  servlet:
+    context-path: /api/v1
+  error:
+    include-message: always
+    include-binding-errors: always
+    include-stacktrace: on_param
+    include-exception: false
+
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info,metrics,prometheus
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when_authorized
+      show-components: always
+  health:
+    redis:
+      enabled: true
+    db:
+      enabled: true
+    rabbit:
+      enabled: true
+  metrics:
+    export:
+      prometheus:
+        enabled: true
+    distribution:
+      percentiles-histogram:
+        http.server.requests: true
+      percentiles:
+        http.server.requests: 0.5, 0.95, 0.99
+      slo:
+        http.server.requests: 100ms, 500ms, 1s, 2s
+
+logging:
+  level:
+    com.enterprise.order: INFO
+    org.springframework.security: DEBUG
+    org.hibernate.SQL: DEBUG
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+    file: "%d{yyyy-MM-dd HH:mm:ss} [%thread] %-5level [%X{correlationId:-}] %logger{36} - %msg%n"
+  file:
+    name: logs/order-service.log
+
+# Application specific configuration
+app:
+  order:
+    cache:
+      ttl: 300 # 5 minutes
+      max-size: 1000
+    pagination:
+      default-size: 20
+      max-size: 100
+    saga:
+      timeout: 30000 # 30 seconds
+      retry:
+        max-attempts: 3
+        delay: 1000
+    circuit-breaker:
+      failure-rate-threshold: 50
+      wait-duration-in-open-state: 60000
+      sliding-window-size: 10
+      minimum-number-of-calls: 5
+
+# External services configuration
+external:
+  services:
+    product-service:
+      url: http://localhost:8081/api/v1
+      timeout: 5000
+      retry:
+        max-attempts: 3
+        delay: 1000
+    payment-service:
+      url: http://localhost:8083/api/v1
+      timeout: 10000
+      retry:
+        max-attempts: 3
+        delay: 2000
+
+# RabbitMQ configuration
+rabbitmq:
+  exchanges:
+    order-events: order.events
+    payment-events: payment.events
+  queues:
+    order-created: order.created
+    order-cancelled: order.cancelled
+    payment-processed: payment.processed
+    payment-failed: payment.failed
+  routing-keys:
+    order-created: order.created
+    order-cancelled: order.cancelled
+    payment-processed: payment.processed
+    payment-failed: payment.failed
+
+---
+spring:
+  config:
+    activate:
+      on-profile: dev
+  
+  datasource:
+    url: jdbc:postgresql://localhost:5432/order_db_dev
+    username: order_user
+    password: order_pass
+  
+  jpa:
+    show-sql: true
+    properties:
+      hibernate:
+        format_sql: true
+  
+  logging:
+    level:
+      com.enterprise.order: DEBUG
+      org.springframework.web: DEBUG
+
+---
+spring:
+  config:
+    activate:
+      on-profile: test
+  
+  datasource:
+    url: jdbc:h2:mem:testdb
+    driver-class-name: org.h2.Driver
+    username: sa
+    password: 
+  
+  jpa:
+    hibernate:
+      ddl-auto: create-drop
+    database-platform: org.hibernate.dialect.H2Dialect
+  
+  flyway:
+    enabled: false
+  
+  data:
+    redis:
+      host: localhost
+      port: 6370 # Different port for tests
+  
+  rabbitmq:
+    host: localhost
+    port: 5673 # Different port for tests
+
+---
+spring:
+  config:
+    activate:
+      on-profile: prod
+  
+  datasource:
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/order_db}
+    username: ${DATABASE_USERNAME:order_user}
+    password: ${DATABASE_PASSWORD:order_pass}
+  
+  data:
+    redis:
+      host: ${REDIS_HOST:localhost}
+      port: ${REDIS_PORT:6379}
+      password: ${REDIS_PASSWORD:}
+  
+  rabbitmq:
+    host: ${RABBITMQ_HOST:localhost}
+    port: ${RABBITMQ_PORT:5672}
+    username: ${RABBITMQ_USERNAME:guest}
+    password: ${RABBITMQ_PASSWORD:guest}
+  
+  security:
+    oauth2:
+      resourceserver:
+        jwt:
+          issuer-uri: ${JWT_ISSUER_URI:http://localhost:8080/auth/realms/enterprise}
+          jwk-set-uri: ${JWT_JWK_SET_URI:http://localhost:8080/auth/realms/enterprise/protocol/openid-connect/certs}
+
+logging:
+  level:
+    com.enterprise.order: INFO
+    org.springframework.security: WARN
+    org.hibernate.SQL: WARN
+    org.hibernate.type.descriptor.sql.BasicBinder: WARN
+
+external:
+  services:
+    product-service:
+      url: ${PRODUCT_SERVICE_URL:http://product-service:8081/api/v1}
+    payment-service:
+      url: ${PAYMENT_SERVICE_URL:http://payment-service:8083/api/v1}
