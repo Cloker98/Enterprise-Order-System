@@ -22,7 +22,7 @@ Este projeto foi desenvolvido seguindo **metodologias de ponta** do mercado:
 
 ### 🎯 Objetivo
 
-Demonstrar **domínio técnico completo** para posição **Java Developer Pleno**, cobrindo:
+Demonstrar **domínio técnico completo** para posição **Java Developer**, cobrindo:
 
 ✅ Java 17 + Spring Boot 3.x
 ✅ APIs REST + Swagger/OpenAPI
@@ -594,7 +594,7 @@ Este projeto está sob a licença MIT. Veja [LICENSE](LICENSE) para detalhes.
 
 ## 📞 Contato
 
-- 💼 Desenvolvido para demonstrar competências técnicas para **Java Developer Pleno**
+- 💼 Desenvolvido para demonstrar competências técnicas para **Java Developer**
 - 🎯 Cobertura completa dos requisitos: **Java 17, Spring Boot, Microsserviços, K8s, Oracle, Padrões de Projeto**
 - 🏆 Metodologias: **DDD, TDD, BDD, SDD**
 
