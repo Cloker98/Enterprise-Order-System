@@ -588,8 +588,6 @@ Este projeto está sob a licença MIT. Veja [LICENSE](LICENSE) para detalhes.
 **Elizeu Grosskopf Schlottfeldt Neto**
 🔗 LinkedIn: [Elizeu Neto](https://linkedin.com/in/elizeuneto)
 🐙 GitHub: [Cloker98](https://github.com/Cloker98)
-📧 Email: seu.email@example.com
-
 ---
 
 ## 📞 Contato
